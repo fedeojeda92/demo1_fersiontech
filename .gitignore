@@ -36,6 +36,11 @@ yarn-error.log*
 # vercel
 .vercel
 
+# unoptimized source assets (not needed at runtime — see public/tour for the
+# resized/compressed versions actually served by the app)
+/public/tour2/
+public/fotos_normales/*.mp4
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
