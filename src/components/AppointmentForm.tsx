@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { motion } from "framer-motion";
 import AnimatedSection from "@/components/AnimatedSection";
-import { properties } from "@/lib/properties";
+import type { Property } from "@/lib/properties";
+import { createLeadAction } from "@/lib/actions/leads";
 import {
   Calendar,
   Clock,
@@ -17,9 +18,12 @@ import {
   ChevronRight,
 } from "lucide-react";
 
-export default function AppointmentsPage() {
+const turnoAction = createLeadAction.bind(null, "turno");
+
+export default function AppointmentForm({ properties }: { properties: Property[] }) {
   const t = useTranslations("appointments");
   const locale = useLocale() as "es" | "en" | "ru";
+  const [state, formAction, pending] = useActionState(turnoAction, undefined);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -29,14 +33,7 @@ export default function AppointmentsPage() {
     time: "",
     message: "",
   });
-  const [submitted, setSubmitted] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 5000);
-  };
 
   const availableTimes = [
     "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
@@ -82,7 +79,7 @@ export default function AppointmentsPage() {
             {/* Form */}
             <AnimatedSection direction="left">
               <div className="glass-card rounded-2xl p-8">
-                {submitted ? (
+                {state?.success ? (
                   <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-12">
                     <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-emerald-500/20">
                       <CheckCircle size={40} className="text-emerald-400" />
@@ -91,7 +88,7 @@ export default function AppointmentsPage() {
                     <p className="text-ivory/40">{t("form.success")}</p>
                   </motion.div>
                 ) : (
-                  <form onSubmit={handleSubmit} className="space-y-6">
+                  <form action={formAction} className="space-y-6">
                     <div>
                       <label className="block text-sm font-medium text-ivory/60 mb-2">
                         {t("form.name")} {t("form.required")}
@@ -99,7 +96,7 @@ export default function AppointmentsPage() {
                       <div className="relative">
                         <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-ivory/30" />
                         <input
-                          type="text" required value={formData.name}
+                          type="text" name="name" required value={formData.name}
                           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                           className="w-full pl-12 pr-4 py-3 bg-ivory/5 border border-ivory/10 rounded-xl text-ivory placeholder:text-ivory/20 focus:outline-none focus:border-champagne/50 transition-colors"
                           placeholder={t("form.name_placeholder")}
@@ -115,7 +112,7 @@ export default function AppointmentsPage() {
                         <div className="relative">
                           <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-ivory/30" />
                           <input
-                            type="email" required value={formData.email}
+                            type="email" name="email" required value={formData.email}
                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                             className="w-full pl-12 pr-4 py-3 bg-ivory/5 border border-ivory/10 rounded-xl text-ivory placeholder:text-ivory/20 focus:outline-none focus:border-champagne/50 transition-colors"
                             placeholder="tu@email.com"
@@ -129,7 +126,7 @@ export default function AppointmentsPage() {
                         <div className="relative">
                           <Phone size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-ivory/30" />
                           <input
-                            type="tel" required value={formData.phone}
+                            type="tel" name="phone" required value={formData.phone}
                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                             className="w-full pl-12 pr-4 py-3 bg-ivory/5 border border-ivory/10 rounded-xl text-ivory placeholder:text-ivory/20 focus:outline-none focus:border-champagne/50 transition-colors"
                             placeholder="+54 11 1234-5678"
@@ -141,6 +138,7 @@ export default function AppointmentsPage() {
                     <div>
                       <label className="block text-sm font-medium text-ivory/60 mb-2">{t("form.property")}</label>
                       <select
+                        name="propertyId"
                         value={formData.property}
                         onChange={(e) => setFormData({ ...formData, property: e.target.value })}
                         className="w-full px-4 py-3 bg-ivory/5 border border-ivory/10 rounded-xl text-ivory focus:outline-none focus:border-champagne/50 transition-colors appearance-none cursor-pointer"
@@ -157,6 +155,7 @@ export default function AppointmentsPage() {
                       <div className="relative">
                         <MessageSquare size={18} className="absolute left-4 top-4 text-ivory/30" />
                         <textarea
+                          name="message"
                           value={formData.message}
                           onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                           rows={4}
@@ -166,12 +165,24 @@ export default function AppointmentsPage() {
                       </div>
                     </div>
 
+                    <input type="hidden" name="appointmentDate" value={formData.date} />
+                    <input type="hidden" name="appointmentTime" value={formData.time} />
+
+                    {!formData.date || !formData.time ? (
+                      <p className="text-sm text-ivory/40">Elegí una fecha y un horario en el calendario para poder agendar.</p>
+                    ) : null}
+
+                    {state?.error && (
+                      <p className="text-sm text-ember" role="alert">{state.error}</p>
+                    )}
+
                     <button
                       type="submit"
-                      className="w-full px-8 py-4 bg-gradient-to-r from-champagne-dark via-champagne to-champagne-light text-obsidian font-medium rounded-xl transition-all duration-300 flex items-center justify-center gap-2 hover:luxury-glow-strong"
+                      disabled={pending || !formData.date || !formData.time}
+                      className="w-full px-8 py-4 bg-gradient-to-r from-champagne-dark via-champagne to-champagne-light text-obsidian font-medium rounded-xl transition-all duration-300 flex items-center justify-center gap-2 hover:luxury-glow-strong disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Calendar size={18} />
-                      {t("form.submit")}
+                      {pending ? "Enviando..." : t("form.submit")}
                     </button>
                   </form>
                 )}

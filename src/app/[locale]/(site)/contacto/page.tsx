@@ -1,21 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import AnimatedSection from "@/components/AnimatedSection";
+import { createLeadAction } from "@/lib/actions/leads";
 import { MapPin, Phone, Mail, Clock, Send, CheckCircle, MessageSquare, User } from "lucide-react";
+
+const contactoAction = createLeadAction.bind(null, "contacto");
 
 export default function ContactPage() {
   const t = useTranslations("contact");
+  const [state, formAction, pending] = useActionState(contactoAction, undefined);
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", subject: "", message: "" });
-  const [submitted, setSubmitted] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 5000);
-  };
 
   const contactInfo = [
     { icon: MapPin, label: t("info.address"), value: t("info.address_value"), href: "https://maps.google.com" },
@@ -84,7 +81,7 @@ export default function ContactPage() {
             {/* Form */}
             <AnimatedSection direction="right" delay={0.2} className="lg:col-span-2">
               <div className="glass-card rounded-2xl p-8">
-                {submitted ? (
+                {state?.success ? (
                   <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-16">
                     <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-emerald-500/20">
                       <CheckCircle size={40} className="text-emerald-400" />
@@ -93,13 +90,13 @@ export default function ContactPage() {
                     <p className="text-ivory/40">{t("form.success")}</p>
                   </motion.div>
                 ) : (
-                  <form onSubmit={handleSubmit} className="space-y-6">
+                  <form action={formAction} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-ivory/60 mb-2">{t("form.name")} *</label>
                         <div className="relative">
                           <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-ivory/30" />
-                          <input type="text" required value={formData.name}
+                          <input type="text" name="name" required value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             className="w-full pl-12 pr-4 py-3 bg-ivory/5 border border-ivory/10 rounded-xl text-ivory placeholder:text-ivory/20 focus:outline-none focus:border-champagne/50 transition-colors"
                             placeholder={t("form.name_placeholder")} />
@@ -109,7 +106,7 @@ export default function ContactPage() {
                         <label className="block text-sm font-medium text-ivory/60 mb-2">{t("form.email")} *</label>
                         <div className="relative">
                           <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-ivory/30" />
-                          <input type="email" required value={formData.email}
+                          <input type="email" name="email" required value={formData.email}
                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                             className="w-full pl-12 pr-4 py-3 bg-ivory/5 border border-ivory/10 rounded-xl text-ivory placeholder:text-ivory/20 focus:outline-none focus:border-champagne/50 transition-colors"
                             placeholder="tu@email.com" />
@@ -122,7 +119,7 @@ export default function ContactPage() {
                         <label className="block text-sm font-medium text-ivory/60 mb-2">{t("form.phone")}</label>
                         <div className="relative">
                           <Phone size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-ivory/30" />
-                          <input type="tel" value={formData.phone}
+                          <input type="tel" name="phone" value={formData.phone}
                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                             className="w-full pl-12 pr-4 py-3 bg-ivory/5 border border-ivory/10 rounded-xl text-ivory placeholder:text-ivory/20 focus:outline-none focus:border-champagne/50 transition-colors"
                             placeholder="+54 11 1234-5678" />
@@ -130,7 +127,7 @@ export default function ContactPage() {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-ivory/60 mb-2">{t("form.subject")} *</label>
-                        <select required value={formData.subject}
+                        <select name="subject" required value={formData.subject}
                           onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                           className="w-full px-4 py-3 bg-ivory/5 border border-ivory/10 rounded-xl text-ivory focus:outline-none focus:border-champagne/50 transition-colors appearance-none cursor-pointer">
                           <option value="" className="bg-obsidian">{t("form.subject_select")}</option>
@@ -147,7 +144,7 @@ export default function ContactPage() {
                       <label className="block text-sm font-medium text-ivory/60 mb-2">{t("form.message")} *</label>
                       <div className="relative">
                         <MessageSquare size={18} className="absolute left-4 top-4 text-ivory/30" />
-                        <textarea required value={formData.message}
+                        <textarea name="message" required value={formData.message}
                           onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                           rows={5}
                           className="w-full pl-12 pr-4 py-3 bg-ivory/5 border border-ivory/10 rounded-xl text-ivory placeholder:text-ivory/20 focus:outline-none focus:border-champagne/50 transition-colors resize-none"
@@ -155,10 +152,14 @@ export default function ContactPage() {
                       </div>
                     </div>
 
-                    <button type="submit"
-                      className="px-8 py-4 bg-gradient-to-r from-champagne-dark via-champagne to-champagne-light text-obsidian font-medium rounded-xl transition-all duration-300 flex items-center gap-2 hover:luxury-glow-strong">
+                    {state?.error && (
+                      <p className="text-sm text-ember" role="alert">{state.error}</p>
+                    )}
+
+                    <button type="submit" disabled={pending}
+                      className="px-8 py-4 bg-gradient-to-r from-champagne-dark via-champagne to-champagne-light text-obsidian font-medium rounded-xl transition-all duration-300 flex items-center gap-2 hover:luxury-glow-strong disabled:opacity-50">
                       <Send size={18} />
-                      {t("form.submit")}
+                      {pending ? "Enviando..." : t("form.submit")}
                     </button>
                   </form>
                 )}

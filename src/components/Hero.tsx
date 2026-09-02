@@ -5,7 +5,7 @@ import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 import { useTranslations, useLocale } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { RevealText } from "./AnimatedSection";
-import { zones, propertyTypes, properties } from "@/lib/properties";
+import { zones, propertyTypes, type Property } from "@/lib/properties";
 import { Search, ArrowRight, Play, ChevronDown, MapPin, Sparkles, Building2 } from "lucide-react";
 
 type Suggestion =
@@ -19,7 +19,7 @@ const heroImages = [
   "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1920&h=1080&fit=crop",
 ];
 
-export default function Hero() {
+export default function Hero({ properties }: { properties: Property[] }) {
   const t = useTranslations("hero");
   const locale = useLocale() as "es" | "en" | "ru";
   const router = useRouter();
@@ -69,7 +69,7 @@ export default function Hero() {
       .map((pt) => ({ kind: "type", label: pt.label[locale], href: `/propiedades?type=${pt.value}` }));
 
     return [...propertyMatches, ...zoneMatches, ...typeMatches].slice(0, 7);
-  }, [searchQuery, locale]);
+  }, [searchQuery, locale, properties]);
 
   const handleSuggestionClick = () => {
     setSearchQuery("");

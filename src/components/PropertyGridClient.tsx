@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
+import { usePathname, useRouter } from "@/i18n/navigation";
 import PropertyCard from "@/components/PropertyCard";
 import AnimatedSection from "@/components/AnimatedSection";
-import { properties, zones, propertyTypes } from "@/lib/properties";
+import type { Property, propertyTypes as PropertyTypesConst, zones as ZonesConst } from "@/lib/properties";
 import {
   Search,
   SlidersHorizontal,
@@ -15,97 +16,109 @@ import {
   MapPin,
 } from "lucide-react";
 
-export default function PropertiesPage() {
-  const t = useTranslations("search");
-  const tProperty = useTranslations("property");
-  const locale = useLocale() as "es" | "en" | "ru";
+export interface PropertyFiltersState {
+  operation: "venta" | "alquiler" | "";
+  type: string;
+  zone: string;
+  rooms: string;
+  minPrice: string;
+  maxPrice: string;
+  query: string;
+}
 
-  const [operation, setOperation] = useState<"venta" | "alquiler" | "">("");
-  const [type, setType] = useState("");
-  const [zone, setZone] = useState("");
-  const [rooms, setRooms] = useState("");
-  const [minPrice, setMinPrice] = useState("");
-  const [maxPrice, setMaxPrice] = useState("");
-  const [query, setQuery] = useState("");
+export default function PropertyGridClient({
+  properties,
+  zones,
+  propertyTypes,
+  initialFilters,
+}: {
+  properties: Property[];
+  zones: typeof ZonesConst;
+  propertyTypes: typeof PropertyTypesConst;
+  initialFilters: PropertyFiltersState;
+}) {
+  const t = useTranslations("search");
+  const locale = useLocale() as "es" | "en" | "ru";
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const [filters, setFilters] = useState<PropertyFiltersState>(initialFilters);
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState("featured");
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const op = params.get("op");
-    const t = params.get("type");
-    const z = params.get("zone");
-    const r = params.get("rooms");
-    const q = params.get("q");
-    if (op === "venta" || op === "alquiler") setOperation(op);
-    if (t) setType(t);
-    if (z) setZone(z);
-    if (r) setRooms(r);
-    if (q) setQuery(q);
-  }, []);
+  // Sincroniza filtros con la URL (query params) para que el Server Component
+  // vuelva a pedir los datos ya filtrados; el texto libre se debounce.
+  const pushFilters = (next: PropertyFiltersState, immediate = false) => {
+    const apply = () => {
+      const params = new URLSearchParams();
+      if (next.operation) params.set("op", next.operation);
+      if (next.type) params.set("type", next.type);
+      if (next.zone) params.set("zone", next.zone);
+      if (next.rooms) params.set("rooms", next.rooms);
+      if (next.minPrice) params.set("minPrice", next.minPrice);
+      if (next.maxPrice) params.set("maxPrice", next.maxPrice);
+      if (next.query) params.set("q", next.query);
+      const qs = params.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname);
+    };
 
-  const filteredProperties = useMemo(() => {
-    let filtered = [...properties];
+    if (immediate) {
+      apply();
+      return;
+    }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(apply, 400);
+  };
 
-    if (operation) {
-      filtered = filtered.filter((p) => p.operation === operation);
-    }
-    if (type) {
-      filtered = filtered.filter((p) => p.type === type);
-    }
-    if (zone) {
-      filtered = filtered.filter((p) => p.zone === zone);
-    }
-    if (rooms) {
-      filtered = filtered.filter((p) => p.bedrooms >= parseInt(rooms));
-    }
-    if (minPrice) {
-      filtered = filtered.filter((p) => p.price >= parseInt(minPrice));
-    }
-    if (maxPrice) {
-      filtered = filtered.filter((p) => p.price <= parseInt(maxPrice));
-    }
-    if (query) {
-      const q = query.toLowerCase();
-      filtered = filtered.filter(
-        (p) =>
-          p.title[locale].toLowerCase().includes(q) ||
-          p.zone.toLowerCase().includes(q) ||
-          p.address.toLowerCase().includes(q)
-      );
-    }
+  const updateFilter = <K extends keyof PropertyFiltersState>(key: K, value: PropertyFiltersState[K]) => {
+    const next = { ...filters, [key]: value };
+    setFilters(next);
+    pushFilters(next, key !== "query");
+  };
 
+  const clearFilters = () => {
+    const empty: PropertyFiltersState = {
+      operation: "",
+      type: "",
+      zone: "",
+      rooms: "",
+      minPrice: "",
+      maxPrice: "",
+      query: "",
+    };
+    setFilters(empty);
+    pushFilters(empty, true);
+  };
+
+  const hasActiveFilters = Object.values(filters).some(Boolean);
+
+  const sortedProperties = useMemo(() => {
+    const sorted = [...properties];
     switch (sortBy) {
       case "price-asc":
-        filtered.sort((a, b) => a.price - b.price);
+        sorted.sort((a, b) => a.price - b.price);
         break;
       case "price-desc":
-        filtered.sort((a, b) => b.price - a.price);
+        sorted.sort((a, b) => b.price - a.price);
         break;
       case "area":
-        filtered.sort((a, b) => b.area - a.area);
+        sorted.sort((a, b) => b.area - a.area);
         break;
       case "featured":
       default:
-        filtered.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+        sorted.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
         break;
     }
+    return sorted;
+  }, [properties, sortBy]);
 
-    return filtered;
-  }, [operation, type, zone, rooms, minPrice, maxPrice, query, sortBy]);
-
-  const clearFilters = () => {
-    setOperation("");
-    setType("");
-    setZone("");
-    setRooms("");
-    setMinPrice("");
-    setMaxPrice("");
-    setQuery("");
-  };
-
-  const hasActiveFilters = operation || type || zone || rooms || minPrice || maxPrice || query;
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-obsidian">
@@ -118,9 +131,7 @@ export default function PropertiesPage() {
         <div className="relative max-w-7xl mx-auto px-6">
           <AnimatedSection>
             <h1 className="font-heading text-4xl md:text-5xl text-ivory mb-4">{t("title")}</h1>
-            <p className="text-ivory/50 text-lg">
-              {t("subtitle")}
-            </p>
+            <p className="text-ivory/50 text-lg">{t("subtitle")}</p>
           </AnimatedSection>
         </div>
       </section>
@@ -141,9 +152,9 @@ export default function PropertiesPage() {
                   ].map((op) => (
                     <button
                       key={op.value}
-                      onClick={() => setOperation(op.value as any)}
+                      onClick={() => updateFilter("operation", op.value as PropertyFiltersState["operation"])}
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                        operation === op.value
+                        filters.operation === op.value
                           ? "bg-gradient-to-r from-champagne-dark via-champagne to-champagne-light text-obsidian"
                           : "bg-ivory/5 text-ivory/60 hover:bg-ivory/10 border border-ivory/10"
                       }`}
@@ -157,8 +168,8 @@ export default function PropertiesPage() {
 
                 {/* Type */}
                 <select
-                  value={type}
-                  onChange={(e) => setType(e.target.value)}
+                  value={filters.type}
+                  onChange={(e) => updateFilter("type", e.target.value)}
                   className="px-4 py-2 bg-ivory/5 border border-ivory/10 rounded-lg text-sm text-ivory focus:outline-none focus:border-champagne/50 appearance-none cursor-pointer"
                 >
                   <option value="" className="bg-obsidian">{t("all_types")}</option>
@@ -171,8 +182,8 @@ export default function PropertiesPage() {
 
                 {/* Zone */}
                 <select
-                  value={zone}
-                  onChange={(e) => setZone(e.target.value)}
+                  value={filters.zone}
+                  onChange={(e) => updateFilter("zone", e.target.value)}
                   className="px-4 py-2 bg-ivory/5 border border-ivory/10 rounded-lg text-sm text-ivory focus:outline-none focus:border-champagne/50 appearance-none cursor-pointer"
                 >
                   <option value="" className="bg-obsidian">{t("all_zones")}</option>
@@ -183,8 +194,8 @@ export default function PropertiesPage() {
 
                 {/* Rooms */}
                 <select
-                  value={rooms}
-                  onChange={(e) => setRooms(e.target.value)}
+                  value={filters.rooms}
+                  onChange={(e) => updateFilter("rooms", e.target.value)}
                   className="px-4 py-2 bg-ivory/5 border border-ivory/10 rounded-lg text-sm text-ivory focus:outline-none focus:border-champagne/50 appearance-none cursor-pointer"
                 >
                   <option value="" className="bg-obsidian">{t("all_rooms")}</option>
@@ -258,7 +269,20 @@ export default function PropertiesPage() {
                 </div>
               </div>
 
-              {/* Advanced filters panel */}
+              {/* Search + advanced filters panel */}
+              <div className="pt-6 mt-6 border-t border-ivory/10">
+                <div className="relative max-w-md">
+                  <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ivory/30" />
+                  <input
+                    type="text"
+                    value={filters.query}
+                    onChange={(e) => updateFilter("query", e.target.value)}
+                    placeholder={t("search_placeholder")}
+                    className="w-full pl-11 pr-4 py-2.5 bg-ivory/5 border border-ivory/10 rounded-lg text-sm text-ivory placeholder:text-ivory/20 focus:outline-none focus:border-champagne/50"
+                  />
+                </div>
+              </div>
+
               <AnimatePresence>
                 {showFilters && (
                   <motion.div
@@ -268,12 +292,13 @@ export default function PropertiesPage() {
                     transition={{ duration: 0.3 }}
                     className="overflow-hidden"
                   >
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-6 mt-6 border-t border-ivory/10">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 mt-6 border-t border-ivory/10">
                       <div>
                         <label className="block text-sm font-medium text-ivory/40 mb-2">{t("min_price")}</label>
                         <input
-                          type="number" value={minPrice}
-                          onChange={(e) => setMinPrice(e.target.value)}
+                          type="number"
+                          value={filters.minPrice}
+                          onChange={(e) => updateFilter("minPrice", e.target.value)}
                           placeholder="USD"
                           className="w-full px-4 py-2.5 bg-ivory/5 border border-ivory/10 rounded-lg text-sm text-ivory placeholder:text-ivory/20 focus:outline-none focus:border-champagne/50"
                         />
@@ -281,23 +306,10 @@ export default function PropertiesPage() {
                       <div>
                         <label className="block text-sm font-medium text-ivory/40 mb-2">{t("max_price")}</label>
                         <input
-                          type="number" value={maxPrice}
-                          onChange={(e) => setMaxPrice(e.target.value)}
+                          type="number"
+                          value={filters.maxPrice}
+                          onChange={(e) => updateFilter("maxPrice", e.target.value)}
                           placeholder="USD"
-                          className="w-full px-4 py-2.5 bg-ivory/5 border border-ivory/10 rounded-lg text-sm text-ivory placeholder:text-ivory/20 focus:outline-none focus:border-champagne/50"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-ivory/40 mb-2">{t("min_area")}</label>
-                        <input
-                          type="number" placeholder="m²"
-                          className="w-full px-4 py-2.5 bg-ivory/5 border border-ivory/10 rounded-lg text-sm text-ivory placeholder:text-ivory/20 focus:outline-none focus:border-champagne/50"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-ivory/40 mb-2">{t("max_area")}</label>
-                        <input
-                          type="number" placeholder="m²"
                           className="w-full px-4 py-2.5 bg-ivory/5 border border-ivory/10 rounded-lg text-sm text-ivory placeholder:text-ivory/20 focus:outline-none focus:border-champagne/50"
                         />
                       </div>
@@ -311,12 +323,12 @@ export default function PropertiesPage() {
           {/* Results count */}
           <div className="flex items-center justify-between mb-6">
             <p className="text-ivory/40">
-              {t("results", { count: filteredProperties.length })}
+              {t("results", { count: sortedProperties.length })}
             </p>
           </div>
 
           {/* Properties grid */}
-          {filteredProperties.length > 0 ? (
+          {sortedProperties.length > 0 ? (
             <div
               className={
                 viewMode === "grid"
@@ -324,7 +336,7 @@ export default function PropertiesPage() {
                   : "flex flex-col gap-6"
               }
             >
-              {filteredProperties.map((property, index) => (
+              {sortedProperties.map((property, index) => (
                 <PropertyCard key={property.id} property={property} index={index} />
               ))}
             </div>

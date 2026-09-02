@@ -2,15 +2,18 @@
 
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { properties } from "@/lib/properties";
+import type { Property } from "@/lib/properties";
 import PropertyCard from "./PropertyCard";
 import AnimatedSection, { StaggerContainer, StaggerItem, ParallaxY } from "./AnimatedSection";
 import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 
-export default function FeaturedProperties() {
+export default function FeaturedProperties({
+  featuredProperties,
+}: {
+  featuredProperties: Property[];
+}) {
   const t = useTranslations("featured");
-  const featuredProperties = properties.filter((p) => p.featured);
 
   return (
     <section className="py-32 bg-obsidian relative overflow-hidden">

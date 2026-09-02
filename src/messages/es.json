@@ -71,6 +71,7 @@
     "min_area": "Mín. m²",
     "max_area": "Máx. m²",
     "search_btn": "Buscar Propiedades",
+    "search_placeholder": "Buscar por zona, dirección o palabra clave...",
     "results": "{count} propiedades encontradas",
     "no_results": "No se encontraron propiedades con estos filtros",
     "clear_filters": "Limpiar Filtros",

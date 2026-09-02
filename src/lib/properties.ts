@@ -76,7 +76,9 @@ export const propertyTypes = [
   { value: "local", label: { es: "Local Comercial", en: "Commercial", ru: "Коммерческое" } },
 ];
 
-export const properties: Property[] = [
+// Los datos reales de propiedades viven en Supabase — ver src/lib/data/properties.ts.
+// Este array queda solo como fuente para scripts/migrate-properties.ts (seed inicial).
+export const seedProperties: Property[] = [
   {
     id: "0",
     title: {

@@ -1,17 +1,19 @@
 "use client";
 
-import { use, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { useTranslations, useLocale } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "@/i18n/navigation";
-import { properties, propertyTypes } from "@/lib/properties";
+import { propertyTypes, type Property } from "@/lib/properties";
 import AnimatedSection, { StaggerContainer, StaggerItem } from "@/components/AnimatedSection";
 import VirtualTour360 from "@/components/VirtualTour360";
+import PhotoLightbox from "@/components/PhotoLightbox";
 import {
   BedDouble,
   Bath,
   Maximize,
+  Maximize2,
   Car,
   Calendar,
   MapPin,
@@ -24,14 +26,16 @@ import {
   ChevronRight,
   Phone,
   MessageCircle,
+  Check,
 } from "lucide-react";
 
-export default function PropertyDetailPage({
-  params,
+export default function PropertyDetailClient({
+  property,
+  similarProperties,
 }: {
-  params: Promise<{ id: string }>;
+  property: Property;
+  similarProperties: Property[];
 }) {
-  const { id } = use(params);
   const t = useTranslations("property");
   const tNav = useTranslations("nav");
   const tFeatured = useTranslations("featured");
@@ -39,21 +43,23 @@ export default function PropertyDetailPage({
   const [currentImage, setCurrentImage] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [activeTab, setActiveTab] = useState<"tour" | "photos">("tour");
+  const [shared, setShared] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
-  const property = properties.find((p) => p.slug === id || p.id === id);
-
-  if (!property) {
-    return (
-      <div className="min-h-screen bg-obsidian flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="font-heading text-3xl text-ivory mb-4">{t("not_found")}</h1>
-          <Link href="/propiedades" className="px-6 py-3 bg-gradient-to-r from-champagne-dark via-champagne to-champagne-light text-obsidian rounded-xl font-medium">
-            {tNav("properties")}
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  const handleShare = async () => {
+    const shareUrl = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, url: shareUrl });
+      } catch {
+        // el usuario cerró el panel de compartir, no es un error
+      }
+      return;
+    }
+    await navigator.clipboard.writeText(shareUrl);
+    setShared(true);
+    setTimeout(() => setShared(false), 2000);
+  };
 
   const title = property.title[locale];
   const typeLabel = propertyTypes.find((pt) => pt.value === property.type)?.label[locale] ?? property.type;
@@ -61,10 +67,6 @@ export default function PropertyDetailPage({
   const formatPrice = (price: number, currency: string) => {
     return `${currency === "USD" ? "U$S" : "$"} ${price.toLocaleString("es-AR")}`;
   };
-
-  const similarProperties = properties
-    .filter((p) => p.id !== property.id && (p.zone === property.zone || p.type === property.type))
-    .slice(0, 3);
 
   return (
     <div className="min-h-screen bg-obsidian">
@@ -118,7 +120,8 @@ export default function PropertyDetailPage({
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentImage}
-                  className="absolute inset-0"
+                  className="absolute inset-0 cursor-zoom-in"
+                  onClick={() => setLightboxOpen(true)}
                   initial={{ opacity: 0, scale: 1.1 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
@@ -161,8 +164,17 @@ export default function PropertyDetailPage({
                 >
                   <Heart size={20} fill={isLiked ? "currentColor" : "none"} />
                 </button>
-                <button className="w-12 h-12 bg-ivory/10 backdrop-blur-sm rounded-full flex items-center justify-center text-ivory hover:bg-ivory/20 transition-colors border border-ivory/10">
-                  <Share2 size={20} />
+                <button
+                  onClick={handleShare}
+                  className="w-12 h-12 bg-ivory/10 backdrop-blur-sm rounded-full flex items-center justify-center text-ivory hover:bg-ivory/20 transition-colors border border-ivory/10"
+                >
+                  {shared ? <Check size={20} className="text-champagne" /> : <Share2 size={20} />}
+                </button>
+                <button
+                  onClick={() => setLightboxOpen(true)}
+                  className="w-12 h-12 bg-ivory/10 backdrop-blur-sm rounded-full flex items-center justify-center text-ivory hover:bg-ivory/20 transition-colors border border-ivory/10"
+                >
+                  <Maximize2 size={20} />
                 </button>
               </div>
             </div>
@@ -321,7 +333,7 @@ export default function PropertyDetailPage({
                     </div>
 
                     <div className="text-center text-sm text-ivory/30">
-                      <p>Ref: {property.id.padStart(6, "0")}</p>
+                      <p>Ref: {property.id.slice(0, 8).toUpperCase()}</p>
                       <p>{t("year")}: {property.year}</p>
                     </div>
                   </div>
@@ -412,6 +424,16 @@ export default function PropertyDetailPage({
           </Link>
         </div>
       </div>
+
+      {lightboxOpen && (
+        <PhotoLightbox
+          images={property.images}
+          index={currentImage}
+          alt={title}
+          onIndexChange={setCurrentImage}
+          onClose={() => setLightboxOpen(false)}
+        />
+      )}
     </div>
   );
 }

@@ -44,3 +44,6 @@ public/fotos_normales/*.mp4
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# notas de trabajo internas (no son parte del producto, no se suben al repo)
+PROJECT_PLAN.md

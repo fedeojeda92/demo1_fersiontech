@@ -5,6 +5,7 @@ import FeaturedProperties from "@/components/FeaturedProperties";
 import WhyChooseUs from "@/components/WhyChooseUs";
 import ZonesSection from "@/components/ZonesSection";
 import CTASection from "@/components/CTASection";
+import { getProperties, getFeaturedProperties } from "@/lib/data/properties";
 import type { Metadata } from "next";
 
 export async function generateMetadata({
@@ -25,12 +26,17 @@ export async function generateMetadata({
   };
 }
 
-export default function HomePage() {
+export default async function HomePage() {
+  const [allProperties, featuredProperties] = await Promise.all([
+    getProperties(),
+    getFeaturedProperties(),
+  ]);
+
   return (
     <>
-      <Hero />
+      <Hero properties={allProperties} />
       <PropertySearch />
-      <FeaturedProperties />
+      <FeaturedProperties featuredProperties={featuredProperties} />
       <WhyChooseUs />
       <ZonesSection />
       <CTASection />
