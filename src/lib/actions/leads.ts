@@ -129,7 +129,11 @@ async function notifyAgentOfLead(lead: LeadNotificationPayload, source: "turno" 
   await sendWhatsAppTemplate({
     to: agentNumber,
     templateName: template,
-    bodyParams: [lead.name, source === "turno" ? "turno" : "contacto", lead.phone ?? lead.email],
+    bodyParams: {
+      nombre: lead.name,
+      tipo: source === "turno" ? "turno" : "contacto",
+      contacto: lead.phone ?? lead.email,
+    },
   });
 }
 
@@ -140,7 +144,7 @@ async function sendWelcomeMessageToLead(lead: LeadNotificationPayload) {
   await sendWhatsAppTemplate({
     to: lead.phone,
     templateName: template,
-    bodyParams: [lead.name],
+    bodyParams: { nombre: lead.name },
   });
 }
 

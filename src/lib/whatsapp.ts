@@ -6,7 +6,8 @@ interface SendTemplateArgs {
   to: string;
   templateName: string;
   languageCode?: string;
-  bodyParams?: string[];
+  /** Variables con nombre de la plantilla, ej. { nombre: "Juan", tipo: "turno" } — deben coincidir con los {{nombre}} definidos en Meta. */
+  bodyParams?: Record<string, string>;
 }
 
 /**
@@ -19,7 +20,7 @@ export async function sendWhatsAppTemplate({
   to,
   templateName,
   languageCode = "es",
-  bodyParams = [],
+  bodyParams = {},
 }: SendTemplateArgs): Promise<void> {
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
   const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
@@ -46,8 +47,19 @@ export async function sendWhatsAppTemplate({
         template: {
           name: templateName,
           language: { code: languageCode },
-          ...(bodyParams.length
-            ? { components: [{ type: "body", parameters: bodyParams.map((text) => ({ type: "text", text })) }] }
+          ...(Object.keys(bodyParams).length
+            ? {
+                components: [
+                  {
+                    type: "body",
+                    parameters: Object.entries(bodyParams).map(([parameter_name, text]) => ({
+                      type: "text",
+                      parameter_name,
+                      text,
+                    })),
+                  },
+                ],
+              }
             : {}),
         },
       }),
