@@ -19,7 +19,7 @@ interface SendTemplateArgs {
 export async function sendWhatsAppTemplate({
   to,
   templateName,
-  languageCode = "es",
+  languageCode = "es_AR",
   bodyParams = {},
 }: SendTemplateArgs): Promise<void> {
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;

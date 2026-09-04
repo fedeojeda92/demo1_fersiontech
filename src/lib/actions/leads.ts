@@ -124,7 +124,12 @@ interface LeadNotificationPayload {
 async function notifyAgentOfLead(lead: LeadNotificationPayload, source: "turno" | "contacto") {
   const agentNumber = process.env.WHATSAPP_AGENT_NUMBER;
   const template = process.env.WHATSAPP_AGENT_TEMPLATE;
-  if (!agentNumber || !template) return;
+  if (!agentNumber || !template) {
+    console.warn(
+      "notifyAgentOfLead: faltan WHATSAPP_AGENT_NUMBER/WHATSAPP_AGENT_TEMPLATE — se omite el envío."
+    );
+    return;
+  }
 
   await sendWhatsAppTemplate({
     to: agentNumber,
@@ -139,7 +144,12 @@ async function notifyAgentOfLead(lead: LeadNotificationPayload, source: "turno" 
 
 async function sendWelcomeMessageToLead(lead: LeadNotificationPayload) {
   const template = process.env.WHATSAPP_WELCOME_TEMPLATE;
-  if (!template || !lead.phone) return;
+  if (!template || !lead.phone) {
+    if (!template) {
+      console.warn("sendWelcomeMessageToLead: falta WHATSAPP_WELCOME_TEMPLATE — se omite el envío.");
+    }
+    return;
+  }
 
   await sendWhatsAppTemplate({
     to: lead.phone,
