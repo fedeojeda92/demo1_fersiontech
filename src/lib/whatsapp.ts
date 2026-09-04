@@ -2,6 +2,21 @@ import "server-only";
 
 const GRAPH_API_VERSION = "v21.0";
 
+/**
+ * Normaliza un teléfono argentino a formato E.164 para la API de WhatsApp — los leads lo
+ * escriben en el formulario como quieren (con/sin 0 inicial, con/sin 9, espacios, guiones),
+ * pero WhatsApp exige el número completo con código de país (549...).
+ * No cubre todos los casos (ej. alguien que ya puso 54 pero se olvidó el 9), pero resuelve
+ * el caso típico de un número local argentino tipeado tal cual.
+ */
+export function normalizeArgentinePhone(raw: string): string {
+  let digits = raw.replace(/\D/g, "");
+  if (digits.startsWith("54")) return digits;
+  if (digits.startsWith("0")) digits = digits.slice(1);
+  if (!digits.startsWith("9")) digits = `9${digits}`;
+  return `54${digits}`;
+}
+
 interface SendTemplateArgs {
   to: string;
   templateName: string;

@@ -7,7 +7,7 @@ import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { getTenantId } from "@/lib/tenant";
 import { getCurrentAgent } from "@/lib/dal";
-import { sendWhatsAppTemplate } from "@/lib/whatsapp";
+import { sendWhatsAppTemplate, normalizeArgentinePhone } from "@/lib/whatsapp";
 import { createGoogleCalendarEvent, isGoogleCalendarConfigured } from "@/lib/googleCalendar";
 
 const LeadSchema = z.object({
@@ -152,7 +152,7 @@ async function sendWelcomeMessageToLead(lead: LeadNotificationPayload) {
   }
 
   await sendWhatsAppTemplate({
-    to: lead.phone,
+    to: normalizeArgentinePhone(lead.phone),
     templateName: template,
     bodyParams: { nombre: lead.name },
   });
