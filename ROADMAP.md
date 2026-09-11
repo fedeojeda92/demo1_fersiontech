@@ -10,7 +10,14 @@
 
 ## 👉 Próxima tarea al retomar
 
-**BL-01 sigue en revisión en Meta** (no hay nada que hacer ahí hasta que aprueben o rechacen la plantilla `nuevo_lead_v2`) — si vuelvo y ya hay novedad de Meta, atenderla primero. Si no, seguir con lo que quede de la Fase 1.B (BL-03, BL-06, BL-08) o arrancar Fase 1.A (agente de WhatsApp con IA, todavía sin empezar).
+Sesión del 2026-09-11 (noche, continuación) cerrada con: BL-08 hecha (limpieza de leads de prueba). Se chequeó BL-01 en el Administrador de WhatsApp de Meta: `nuevo_lead_v2` sigue **"En revisión"**, sin novedad. También se borró `tokenwspfersion.txt` (archivo suelto fuera del repo con un token de WhatsApp en texto plano, resabio de BL-02 — ya no hacía falta, el token vigente vive en `.env.local`/Vercel).
+
+1. **Primero chequear si hay novedad de Meta sobre la plantilla `nuevo_lead_v2`** (BL-01, en revisión desde el 2026-09-11) — si ya aprobaron o rechazaron, atenderlo antes que cualquier otra cosa (ver pasos en BL-01 más abajo).
+2. Si no hay novedad de Meta, la siguiente tarea simple y desbloqueada es **BL-06 — revisar plan de hosting de Vercel** (Hobby vs Pro), decisión sin dependencias.
+3. **BL-03 (número de WhatsApp Business real)** depende de que BL-01 esté resuelto — no arrancarlo antes.
+4. Con eso cerrado, lo más grande e importante que queda de Fase 1 es **1.A — el agente conversacional de WhatsApp con IA (RM-01 a RM-10)**, que todavía no se empezó.
+
+**Estado de git**: el trabajo de esta sesión (política de privacidad) ya está pusheado a `origin/main` y en producción. `ROADMAP.md` y `HISTORIAS_USUARIOS.md` están comiteados localmente pero **no pusheados** (a pedido explícito del usuario) — decidir si subirlos antes de seguir.
 
 ---
 
@@ -77,7 +84,7 @@ Esta fase tiene **dos partes muy distintas** que conviene no confundir:
 - [x] **BL-05 — Política de privacidad básica** — ✅ hecho 2026-09-11. Página `/politica-privacidad` en los 3 idiomas (qué datos se recolectan, para qué, con quién se comparten —Supabase, WhatsApp Business API, Google Calendar—, derechos del usuario). Enlazada desde el footer y desde los formularios de contacto y turnos. Deployada a producción. Fue lo que desbloqueó a BL-04 (Google exige una URL de política de privacidad válida para publicar la app).
 - [ ] **BL-06 — Revisar el plan de hosting antes de cobrar**: hoy corre en Vercel Hobby (prohíbe uso comercial) — evaluar y migrar a Pro si corresponde. — *Must · S (decisión simple, implica pasar de costo $0 a un fijo mensual)*
 - [x] **BL-07 — QA de punta a punta: crear una propiedad de cero** — ✅ hecho 2026-09-11. Probado con automatización de Chrome: formulario completo, slug autogenerado desde el título, subida de 2 fotos con preview/portada, traducción automática correcta a inglés y ruso (título y descripción), galería funcionando en el sitio público en los 3 idiomas. Sin errores. La propiedad de prueba se borró al terminar (no quedó basura). Nota: el botón de eliminar del panel dispara un `confirm()` nativo del navegador que bloquea la automatización de Chrome — requiere confirmación manual del usuario.
-- [ ] **BL-08 — Limpieza de datos de prueba**: borrar leads de prueba acumulados en sesiones de testing (incluye varios generados en la sesión del 2026-09-11). — *Must · S*
+- [x] **BL-08 — Limpieza de datos de prueba** — ✅ hecho 2026-09-11. Se borraron los 24 leads acumulados en sesiones de testing (ninguno era de un cliente real — nombres/emails de prueba o el propio email/teléfono del usuario). Tabla `leads` vacía, lista para datos reales.
 
 ---
 
@@ -153,6 +160,7 @@ Mínimo viable: **Fase 1 completa (1.A + 1.B) + Fase 4 hecha + al menos los íte
 
 ## Historial de cambios
 
+- **2026-09-11 (noche, continuación)**: BL-08 hecha — se borraron los 24 leads de prueba acumulados en Supabase (ninguno de un cliente real). Se chequeó BL-01 en Meta: `nuevo_lead_v2` sigue en revisión, sin novedad. Se borró `tokenwspfersion.txt`, un archivo suelto fuera del repo con un token de WhatsApp en texto plano (resabio de BL-02, ya no necesario).
 - **2026-09-11 (noche)**: BL-04 y BL-05 hechas. La política de privacidad (BL-05) se creó específicamente porque bloqueaba a BL-04 (Google no deja publicar la app sin una URL de política de privacidad válida) — dependencia real que no estaba anotada. Con la app en "En producción", el refresh_token de Google Calendar ya no expira cada 7 días.
 - **2026-09-11 (tarde)**: BL-07 marcada hecha — QA de crear propiedad de cero probado con automatización de Chrome (ver detalle en la tarea). Sin bugs encontrados.
 - **2026-09-11**: consolidación de `Roadmap-Producto-FersionTech.md` + `Metodologia-Agil-Fede.md` + `PRODUCT_BACKLOG.md` en este único archivo (los 3 originales se eliminaron). Se detectó que el agente conversacional de IA por WhatsApp (Fase 1.A) nunca había quedado registrado como pendiente en el backlog técnico — se agrega explícitamente. BL-02 marcada hecha (rotación de token de WhatsApp + rotación de emergencia de 4 secretos adicionales expuestos accidentalmente en sesión de chat). BL-01 pasó a en progreso (plantilla `nuevo_lead_v2` enviada a revisión de Meta).
