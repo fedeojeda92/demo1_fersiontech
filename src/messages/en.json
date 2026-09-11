@@ -248,6 +248,23 @@
     "newsletter_btn": "Subscribe",
     "hours_value": "Mon - Fri: 9:00 AM - 6:00 PM | Sat: 10:00 AM - 2:00 PM"
   },
+  "privacy": {
+    "badge": "Legal",
+    "title": "Privacy Policy",
+    "updated": "Last updated: September 2026",
+    "intro": "At FS Inmobiliaria we take the protection of your personal data seriously. This policy explains what information we collect, how we use it, and what rights you have over it.",
+    "sections": [
+      { "title": "What information we collect", "body": "When you fill out a contact or appointment form on our site, we collect your name, email, phone number, and the message or inquiry you leave us. If you schedule a visit, we also store the property, date, and time you chose." },
+      { "title": "How we use your information", "body": "We use your data to respond to your inquiry, coordinate visits with one of our advisors, and send you confirmations. If you leave your phone number, you may receive a WhatsApp message confirming your inquiry or appointment." },
+      { "title": "Who we share it with", "body": "Your data is stored in Supabase, our database provider. For notifications we use Meta's WhatsApp Business API, and to coordinate appointments we use Google Calendar. We do not sell or share your data with third parties for advertising purposes." },
+      { "title": "How long we keep your data", "body": "We keep your information for as long as our business relationship lasts, or until you ask us to delete it." },
+      { "title": "Your rights", "body": "You can ask us at any time to show you, correct, or delete your personal data by writing to info@fsinmobiliaria.com.ar." },
+      { "title": "Cookies and analytics", "body": "We record anonymous, aggregated visits to property pages (without linking them to your identity) to understand which properties generate the most interest. We do not use third-party tracking cookies for advertising purposes." }
+    ],
+    "contact_title": "Have questions?",
+    "contact_body": "Write to us at info@fsinmobiliaria.com.ar and we'll be happy to help.",
+    "form_notice": "By submitting this form, you accept our <link>Privacy Policy</link>."
+  },
   "zones": {
     "badge": "Featured Zones",
     "title_1": "Explore the Best",

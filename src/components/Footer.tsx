@@ -161,7 +161,7 @@ export default function Footer() {
           <p className="text-ivory/20 text-xs tracking-wider">{t("copyright")}</p>
           <div className="flex items-center gap-6">
             <Link href="#" className="text-ivory/20 text-xs hover:text-champagne transition-colors">{t("terms")}</Link>
-            <Link href="#" className="text-ivory/20 text-xs hover:text-champagne transition-colors">{t("privacy")}</Link>
+            <Link href="/politica-privacidad" className="text-ivory/20 text-xs hover:text-champagne transition-colors">{t("privacy")}</Link>
           </div>
         </div>
       </div>

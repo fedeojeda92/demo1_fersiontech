@@ -248,6 +248,23 @@
     "newsletter_btn": "Suscribirse",
     "hours_value": "Lun - Vie: 9:00 - 18:00 | Sáb: 10:00 - 14:00"
   },
+  "privacy": {
+    "badge": "Legal",
+    "title": "Política de Privacidad",
+    "updated": "Última actualización: septiembre de 2026",
+    "intro": "En FS Inmobiliaria nos tomamos en serio la protección de tus datos personales. Esta política explica qué información recolectamos, cómo la usamos y qué derechos tenés sobre ella.",
+    "sections": [
+      { "title": "Qué información recolectamos", "body": "Cuando completás un formulario de contacto o de turno en nuestro sitio, recolectamos tu nombre, email, teléfono y el mensaje o consulta que nos dejás. Si agendás una visita, también guardamos la propiedad, fecha y horario elegidos." },
+      { "title": "Cómo usamos tu información", "body": "Usamos tus datos para responder tu consulta, coordinar visitas con uno de nuestros asesores y enviarte confirmaciones. Si dejás tu número de teléfono, podés recibir un mensaje de WhatsApp con la confirmación de tu consulta o turno." },
+      { "title": "Con quién la compartimos", "body": "Tus datos se almacenan en Supabase, nuestro proveedor de base de datos. Para las notificaciones usamos la API de WhatsApp Business de Meta, y para coordinar turnos usamos Google Calendar. No vendemos ni compartimos tus datos con terceros con fines publicitarios." },
+      { "title": "Cuánto tiempo conservamos tus datos", "body": "Conservamos tu información mientras dure el vínculo comercial o hasta que nos pidas que la eliminemos." },
+      { "title": "Tus derechos", "body": "Podés pedirnos en cualquier momento que te mostremos, corrijamos o eliminemos tus datos personales escribiéndonos a info@fsinmobiliaria.com.ar." },
+      { "title": "Cookies y analítica", "body": "Registramos de forma anónima y agregada las visitas a las páginas de propiedades (sin asociarlas a tu identidad) para entender qué propiedades generan más interés. No utilizamos cookies de rastreo de terceros con fines publicitarios." }
+    ],
+    "contact_title": "¿Tenés preguntas?",
+    "contact_body": "Escribinos a info@fsinmobiliaria.com.ar y con gusto te ayudamos.",
+    "form_notice": "Al enviar este formulario, aceptás nuestra <link>Política de Privacidad</link>."
+  },
   "zones": {
     "badge": "Zonas Destacadas",
     "title_1": "Explorá las Mejores",

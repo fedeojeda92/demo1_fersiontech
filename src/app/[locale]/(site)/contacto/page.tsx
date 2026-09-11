@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import AnimatedSection from "@/components/AnimatedSection";
+import { Link } from "@/i18n/navigation";
 import { createLeadAction } from "@/lib/actions/leads";
 import { MapPin, Phone, Mail, Clock, Send, CheckCircle, MessageSquare, User } from "lucide-react";
 
@@ -11,6 +12,7 @@ const contactoAction = createLeadAction.bind(null, "contacto");
 
 export default function ContactPage() {
   const t = useTranslations("contact");
+  const tPrivacy = useTranslations("privacy");
   const [state, formAction, pending] = useActionState(contactoAction, undefined);
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", subject: "", message: "" });
 
@@ -155,6 +157,16 @@ export default function ContactPage() {
                     {state?.error && (
                       <p className="text-sm text-ember" role="alert">{state.error}</p>
                     )}
+
+                    <p className="text-xs text-ivory/30">
+                      {tPrivacy.rich("form_notice", {
+                        link: (chunks) => (
+                          <Link href="/politica-privacidad" className="text-champagne/70 hover:text-champagne underline underline-offset-2">
+                            {chunks}
+                          </Link>
+                        ),
+                      })}
+                    </p>
 
                     <button type="submit" disabled={pending}
                       className="px-8 py-4 bg-gradient-to-r from-champagne-dark via-champagne to-champagne-light text-obsidian font-medium rounded-xl transition-all duration-300 flex items-center gap-2 hover:luxury-glow-strong disabled:opacity-50">

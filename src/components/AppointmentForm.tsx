@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { motion } from "framer-motion";
 import AnimatedSection from "@/components/AnimatedSection";
+import { Link } from "@/i18n/navigation";
 import type { Property } from "@/lib/properties";
 import { createLeadAction } from "@/lib/actions/leads";
 import {
@@ -22,6 +23,7 @@ const turnoAction = createLeadAction.bind(null, "turno");
 
 export default function AppointmentForm({ properties }: { properties: Property[] }) {
   const t = useTranslations("appointments");
+  const tPrivacy = useTranslations("privacy");
   const locale = useLocale() as "es" | "en" | "ru";
   const [state, formAction, pending] = useActionState(turnoAction, undefined);
   const [formData, setFormData] = useState({
@@ -175,6 +177,16 @@ export default function AppointmentForm({ properties }: { properties: Property[]
                     {state?.error && (
                       <p className="text-sm text-ember" role="alert">{state.error}</p>
                     )}
+
+                    <p className="text-xs text-ivory/30">
+                      {tPrivacy.rich("form_notice", {
+                        link: (chunks) => (
+                          <Link href="/politica-privacidad" className="text-champagne/70 hover:text-champagne underline underline-offset-2">
+                            {chunks}
+                          </Link>
+                        ),
+                      })}
+                    </p>
 
                     <button
                       type="submit"
