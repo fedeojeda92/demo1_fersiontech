@@ -107,9 +107,8 @@ export async function sendWhatsAppText({ to, body }: SendTextArgs): Promise<void
     return;
   }
 
-  const res = await fetch(
-    `https://graph.facebook.com/${GRAPH_API_VERSION}/${phoneNumberId}/messages`,
-    {
+  const send = (recipient: string) =>
+    fetch(`https://graph.facebook.com/${GRAPH_API_VERSION}/${phoneNumberId}/messages`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -117,14 +116,24 @@ export async function sendWhatsAppText({ to, body }: SendTextArgs): Promise<void
       },
       body: JSON.stringify({
         messaging_product: "whatsapp",
-        to,
+        to: recipient,
         type: "text",
         text: { body },
       }),
-    }
-  );
+    });
+
+  let res = await send(to);
+  let errorText = res.ok ? "" : await res.text();
+
+  // Con el número de prueba de Meta, un celular de CABA llega como 54 9 11 XXXXXXXX pero la
+  // lista de destinatarios permitidos solo acepta el formato viejo 54 11 15 XXXXXXXX (error 131030).
+  const legacy = to.match(/^54911(\d{8})$/);
+  if (!res.ok && legacy && errorText.includes("131030")) {
+    res = await send(`541115${legacy[1]}`);
+    errorText = res.ok ? "" : await res.text();
+  }
 
   if (!res.ok) {
-    console.error("WhatsApp sendText error:", res.status, await res.text());
+    console.error("WhatsApp sendText error:", res.status, errorText);
   }
 }
