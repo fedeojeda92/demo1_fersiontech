@@ -111,7 +111,7 @@ Esta fase tiene **dos partes muy distintas** que conviene no confundir:
 
 ## Fase 4 — Actualizar la demo y la web con el producto final
 
-- [ ] Reflejar en `demo1-fersiontech.vercel.app` el agente de WhatsApp funcionando (o una simulación mostrable), una vez cerrada la Fase 1.
+- [x] Reflejar en `demo1-fersiontech.vercel.app` el agente de WhatsApp funcionando — ✅ hecho 2026-09-13. Deployado a producción, webhook real suscripto en Meta, app de Meta publicada, y probado con mensajes reales desde WhatsApp (no simulados): el agente responde en vivo con datos reales y mantiene el contexto entre mensajes. Para hacer una demo, el número del prospecto tiene que estar agregado como destinatario de prueba en Meta (máx. 5) y tiene que escribir primero él. Detalles técnicos encontrados en el camino: (1) había que publicar la app de Meta — sin publicar, Meta no entrega webhooks reales; (2) la cuenta de WhatsApp Business no estaba suscripta a la app (`POST /{WABA_ID}/subscribed_apps`); (3) Meta manda los celulares de CABA como `54911XXXXXXXX` pero en modo prueba solo deja responder a `541115XXXXXXXX` — `sendWhatsAppText` reintenta con ese formato ante el error 131030. Pendiente menor: cargar `WHATSAPP_APP_SECRET` en Vercel para verificar la firma de los webhooks (hoy se omite con un warning).
 - [ ] Actualizar la sección de planes de `www.fersiontech.com` (Esencial / Profesional + add-on de staging).
 - [ ] Evaluar mover la demo a `demo.fersiontech.com` en vez de la URL de Vercel.
 
