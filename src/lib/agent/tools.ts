@@ -73,6 +73,13 @@ export const AGENT_TOOLS: FunctionDeclaration[] = [
   },
 ];
 
+function getSiteUrl(): string {
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  }
+  return "http://localhost:3000";
+}
+
 export interface ToolContext {
   supabase: SupabaseClient;
   tenantId: string;
@@ -110,7 +117,7 @@ async function executeSearchProperties(
       const cochera = p.garage ? "con cochera" : null;
       const tour = p.hasVirtualTour ? "con tour 360°" : null;
       const detalles = [ambientes, `${p.area} m²`, cochera, tour].filter(Boolean).join(", ");
-      return `- ID ${p.id}: ${p.zone}, ${p.type} en ${p.operation}, ${p.currency} ${p.price} (${detalles})`;
+      return `- ID ${p.id}: ${p.zone}, ${p.type} en ${p.operation}, ${p.currency} ${p.price} (${detalles}). Fotos y tour: ${getSiteUrl()}/es/propiedades/${p.slug}`;
     })
     .join("\n");
 }
