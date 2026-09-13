@@ -46,7 +46,7 @@ export default async function AdminLeadsPage({
                     {lead.message && <p className="text-ivory/40 text-xs mt-1 max-w-xs">{lead.message}</p>}
                   </td>
                   <td className="px-6 py-3 text-ivory/60">
-                    <p>{lead.email}</p>
+                    {lead.email && <p>{lead.email}</p>}
                     {lead.phone && <p className="text-ivory/40">{lead.phone}</p>}
                   </td>
                   <td className="px-6 py-3 text-ivory/60 capitalize">{lead.source}</td>

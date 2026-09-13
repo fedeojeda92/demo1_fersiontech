@@ -1,4 +1,5 @@
 import "server-only";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { getTenantId } from "@/lib/tenant";
 import type { Property } from "@/lib/properties";
@@ -76,7 +77,26 @@ export interface PropertyFilters {
 export async function getProperties(filters: PropertyFilters = {}): Promise<Property[]> {
   const supabase = await createClient();
   const tenantId = await getTenantId();
+  return queryProperties(supabase, tenantId, filters);
+}
 
+/**
+ * Igual que getProperties, pero para contextos sin cookies/sesión (el webhook de
+ * WhatsApp) que ya tienen su cliente y tenantId resueltos de antemano.
+ */
+export async function getPropertiesForTenant(
+  supabase: SupabaseClient,
+  tenantId: string,
+  filters: PropertyFilters = {}
+): Promise<Property[]> {
+  return queryProperties(supabase, tenantId, filters);
+}
+
+async function queryProperties(
+  supabase: SupabaseClient,
+  tenantId: string,
+  filters: PropertyFilters
+): Promise<Property[]> {
   let query = supabase.from("properties").select("*").eq("tenant_id", tenantId);
 
   if (filters.operation) query = query.eq("operation", filters.operation);

@@ -62,7 +62,21 @@ Abrí [http://localhost:3000](http://localhost:3000) para el sitio público y [h
    - Una de bienvenida para el interesado (`WHATSAPP_WELCOME_TEMPLATE`)
 4. Mientras las plantillas no estén aprobadas, podés probar mandando mensajes a los 5 números de test gratuitos que permite Meta.
 
-## 8. Google Calendar (OAuth) — turnos con notificación push, opcional al principio
+## 8. Agente conversacional de WhatsApp (Gemini) — RM-02, opcional al principio
+
+Responde automáticamente los mensajes que llegan al número de WhatsApp, usando el prompt de `docs/agente-whatsapp-prompt.md` y datos reales del catálogo (ver ese archivo para el detalle del comportamiento del agente). Usa la API de Google Gemini (gratis, sin tarjeta de crédito) en vez de un modelo pago.
+
+1. Generá una API key gratis en [aistudio.google.com/apikey](https://aistudio.google.com/apikey) → completá `GEMINI_API_KEY`.
+2. Inventá un string cualquiera para `WHATSAPP_VERIFY_TOKEN` (ya viene generado en `.env.local`, no hace falta tocarlo).
+3. En tu app de Meta for Developers → **Configuración básica** → copiá el **Secreto de la app** → completá `WHATSAPP_APP_SECRET`. Verifica que los webhooks realmente vengan de Meta; sin esto configurado, el webhook igual funciona (para poder probar en local con `curl`) pero sin esa verificación.
+4. Deployá el proyecto primero (Meta necesita pegarle a una URL pública para el handshake).
+5. En Meta for Developers → **WhatsApp → Configuration → Webhook**, cargá:
+   - Callback URL: `https://tu-dominio/api/whatsapp/webhook`
+   - Verify token: el mismo valor de `WHATSAPP_VERIFY_TOKEN`
+   - Suscribite al campo `messages`.
+6. Mandale un WhatsApp de prueba al número configurado y confirmá que el agente responde.
+
+## 9. Google Calendar (OAuth) — turnos con notificación push, opcional al principio
 
 Sin esto configurado, el sitio funciona igual: la agenda del admin sigue con el calendario visual y el feed `.ics` (de solo lectura, con delay de sincronización). Conectando Google Calendar, cada turno agendado crea el evento automáticamente en tu calendario con notificación push al toque.
 
@@ -86,7 +100,7 @@ Sin esto configurado, el sitio funciona igual: la agenda del admin sigue con el 
 7. Si el proyecto de Supabase ya estaba creado antes de esta funcionalidad, corré en el SQL Editor el bloque "Integracion Google Calendar" del final de `supabase/schema.sql` (ver sección 2).
 8. Reiniciá `npm run dev`, entrá a `/admin/agenda` y hacé clic en **Conectar Google Calendar**. En la pantalla de consentimiento de Google confirmá que pide permiso sobre tu calendario (si solo pide "ver tu email", el scope del paso 4 no quedó bien guardado).
 
-## 9. Deploy
+## 10. Deploy
 
 Se puede desplegar gratis en el plan **Hobby** de Vercel mientras el producto todavía no factura (revisar los términos de uso no-comercial de ese plan; migrar a Pro apenas haya un cliente pagando). Configurá las mismas variables de entorno del `.env.local` en el proyecto de Vercel.
 

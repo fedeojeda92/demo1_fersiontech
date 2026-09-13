@@ -179,6 +179,47 @@ drop policy if exists "agents can update own row" on agents;
 create policy "agents can update own row" on agents
   for update using (id = auth.uid());
 
+-- Agente conversacional de WhatsApp (RM-02..RM-06): historial de conversacion, para que
+-- el modelo de IA tenga contexto de los mensajes anteriores de cada telefono.
+create table whatsapp_messages (
+  id uuid primary key default gen_random_uuid(),
+  tenant_id uuid not null references tenants(id),
+  phone text not null,
+  wa_message_id text unique, -- solo mensajes entrantes lo tienen; unique permite multiples null
+  role text not null check (role in ('user', 'assistant')),
+  content text not null,
+  created_at timestamptz not null default now()
+);
+
+create index whatsapp_messages_tenant_phone_idx on whatsapp_messages(tenant_id, phone, created_at desc);
+
+alter table whatsapp_messages enable row level security;
+-- Sin policies publicas: solo el service-role client (usado por el webhook) puede leer/escribir.
+
+-- Permitir source 'whatsapp' en leads. Busca el nombre real del check constraint sobre
+-- la columna `source` (en vez de asumirlo) para no romper si Postgres lo nombró distinto.
+do $$
+declare
+  constraint_name text;
+begin
+  select con.conname into constraint_name
+  from pg_constraint con
+  join pg_class rel on rel.oid = con.conrelid
+  where rel.relname = 'leads'
+    and con.contype = 'c'
+    and pg_get_constraintdef(con.oid) ilike '%source%';
+
+  if constraint_name is not null then
+    execute format('alter table leads drop constraint %I', constraint_name);
+  end if;
+
+  alter table leads add constraint leads_source_check
+    check (source in ('turno', 'contacto', 'whatsapp'));
+end $$;
+
+-- Los leads de WhatsApp no tienen email (a diferencia de los formularios web).
+alter table leads alter column email drop not null;
+
 -- Storage: bucket publico de lectura para imagenes de propiedades.
 -- Ejecutar aparte (Storage no soporta `create table`): desde el dashboard,
 -- Storage -> New bucket -> nombre "property-images" -> Public bucket = true.

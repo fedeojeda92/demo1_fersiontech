@@ -85,3 +85,46 @@ export async function sendWhatsAppTemplate({
     console.error("WhatsApp sendTemplate error:", res.status, await res.text());
   }
 }
+
+interface SendTextArgs {
+  to: string;
+  body: string;
+}
+
+/**
+ * Manda un mensaje de texto libre. Solo es válido dentro de la ventana de 24hs que abre
+ * un mensaje entrante del usuario — por eso se usa para responder al agente conversacional,
+ * nunca para el primer contacto (para eso está sendWhatsAppTemplate).
+ */
+export async function sendWhatsAppText({ to, body }: SendTextArgs): Promise<void> {
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
+
+  if (!phoneNumberId || !accessToken) {
+    console.warn(
+      "WhatsApp no configurado (faltan WHATSAPP_PHONE_NUMBER_ID/WHATSAPP_ACCESS_TOKEN) — se omite el envío."
+    );
+    return;
+  }
+
+  const res = await fetch(
+    `https://graph.facebook.com/${GRAPH_API_VERSION}/${phoneNumberId}/messages`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        to,
+        type: "text",
+        text: { body },
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    console.error("WhatsApp sendText error:", res.status, await res.text());
+  }
+}

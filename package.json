@@ -13,6 +13,7 @@
     "migrate:properties": "tsx --env-file=.env.local scripts/migrate-properties.ts"
   },
   "dependencies": {
+    "@google/genai": "^2.22.0",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.45.4",
     "framer-motion": "^12.42.2",
