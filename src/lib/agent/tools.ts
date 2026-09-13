@@ -4,7 +4,12 @@ import type { FunctionDeclaration } from "@google/genai";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getPropertiesForTenant } from "@/lib/data/properties";
 import { attachAppointmentToLead } from "@/lib/data/whatsappLeads";
-import { createGoogleCalendarEvent, isGoogleCalendarConfigured } from "@/lib/googleCalendar";
+import {
+  createGoogleCalendarEvent,
+  isGoogleCalendarConfigured,
+  listGoogleCalendarBusy,
+  type BusyInterval,
+} from "@/lib/googleCalendar";
 import { sendWhatsAppTemplate } from "@/lib/whatsapp";
 
 export const SearchPropertiesInput = z.object({
@@ -21,6 +26,10 @@ export const ScheduleVisitInput = z.object({
   propertyId: z.string(),
   date: z.string().describe("Fecha en formato YYYY-MM-DD"),
   time: z.string().describe("Hora en formato HH:MM"),
+});
+
+export const CheckAvailabilityInput = z.object({
+  date: z.string().describe("Fecha en formato YYYY-MM-DD"),
 });
 
 export const EscalateToHumanInput = z.object({
@@ -46,9 +55,21 @@ export const AGENT_TOOLS: FunctionDeclaration[] = [
     },
   },
   {
+    name: "check_availability",
+    description:
+      "Devuelve los horarios libres y ocupados para visitas en una fecha, según el horario de atención, los turnos ya agendados y el calendario del agente. Usar siempre antes de proponer o confirmar un horario de visita.",
+    parametersJsonSchema: {
+      type: "object",
+      properties: {
+        date: { type: "string", description: "Fecha en formato YYYY-MM-DD" },
+      },
+      required: ["date"],
+    },
+  },
+  {
     name: "schedule_visit",
     description:
-      "Agenda una visita a una propiedad puntual del catálogo, en el calendario del agente. Usar solo después de que el interesado eligió una propiedad concreta y confirmó día y hora.",
+      "Agenda una visita a una propiedad puntual del catálogo, en el calendario del agente. Usar solo después de que el interesado eligió una propiedad concreta y confirmó un día y hora que check_availability devolvió como libre. Si el horario está ocupado, la herramienta no agenda y devuelve alternativas.",
     parametersJsonSchema: {
       type: "object",
       properties: {
@@ -91,6 +112,8 @@ export async function executeTool(name: string, input: unknown, ctx: ToolContext
   switch (name) {
     case "search_properties":
       return executeSearchProperties(SearchPropertiesInput.parse(input), ctx);
+    case "check_availability":
+      return executeCheckAvailability(CheckAvailabilityInput.parse(input), ctx);
     case "schedule_visit":
       return executeScheduleVisit(ScheduleVisitInput.parse(input), ctx);
     case "escalate_to_human":
@@ -161,6 +184,15 @@ async function executeScheduleVisit(
     return "Ningún agente tiene el calendario conectado todavía — avisale que confirme la visita manualmente.";
   }
 
+  const availability = await getAvailability(ctx, input.date);
+  if (typeof availability === "string") return `No se agendó la visita: ${availability}`;
+  if (!availability.free.includes(input.time)) {
+    const alternativas = availability.free.length
+      ? `Horarios libres ese día: ${availability.free.join(", ")}.`
+      : "Ese día no quedan horarios libres, proponé otro día.";
+    return `No se agendó la visita: el horario ${input.time} del ${input.date} no está disponible. ${alternativas}`;
+  }
+
   const title = (property.title as { es?: string })?.es ?? "Propiedad";
   await Promise.all(
     agents.map((a) =>
@@ -178,6 +210,97 @@ async function executeScheduleVisit(
   await attachAppointmentToLead(ctx.supabase, ctx.leadId, input.propertyId, input.date, input.time);
 
   return `Visita agendada para el ${input.date} a las ${input.time}.`;
+}
+
+const VISIT_DURATION_MINUTES = 30;
+
+// Mantener en sync con el horario de docs/agente-whatsapp-prompt.md y la página /contacto.
+// Índice = día de la semana (0 = domingo). null = cerrado.
+const BUSINESS_HOURS: ({ open: string; close: string } | null)[] = [
+  null,
+  { open: "09:00", close: "18:00" },
+  { open: "09:00", close: "18:00" },
+  { open: "09:00", close: "18:00" },
+  { open: "09:00", close: "18:00" },
+  { open: "09:00", close: "18:00" },
+  { open: "10:00", close: "14:00" },
+];
+
+const toMinutes = (time: string) => {
+  const [h, m] = time.split(":").map(Number);
+  return h * 60 + m;
+};
+
+const toTime = (minutes: number) =>
+  `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+
+/**
+ * Horarios de visita libres/ocupados en una fecha (hora de Buenos Aires). Cruza el horario de
+ * atención con los turnos ya guardados en `leads` (web y WhatsApp) y los eventos del Google
+ * Calendar de cada agente conectado. Devuelve un string si la fecha no es válida para visitas.
+ */
+async function getAvailability(
+  ctx: ToolContext,
+  date: string
+): Promise<{ free: string[]; busy: string[] } | string> {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(Date.parse(`${date}T12:00:00-03:00`))) {
+    return "la fecha no es válida, pedile al interesado que la confirme.";
+  }
+
+  const hours = BUSINESS_HOURS[new Date(`${date}T12:00:00-03:00`).getUTCDay()];
+  if (!hours) return "ese día la inmobiliaria no atiende (domingo). Proponé otro día.";
+
+  const nowBA = new Date(Date.now() - 3 * 60 * 60 * 1000);
+  const todayBA = nowBA.toISOString().slice(0, 10);
+  if (date < todayBA) return "esa fecha ya pasó. Proponé una fecha futura.";
+  const earliest = date === todayBA ? nowBA.getUTCHours() * 60 + nowBA.getUTCMinutes() : 0;
+
+  const busy: BusyInterval[] = [];
+
+  const { data: booked } = await ctx.supabase
+    .from("leads")
+    .select("appointment_time")
+    .eq("tenant_id", ctx.tenantId)
+    .eq("appointment_date", date)
+    .not("appointment_time", "is", null);
+  for (const row of booked ?? []) {
+    const start = toMinutes(row.appointment_time as string);
+    busy.push({ start, end: start + VISIT_DURATION_MINUTES });
+  }
+
+  if (isGoogleCalendarConfigured()) {
+    const { data: agents } = await ctx.supabase
+      .from("agents")
+      .select("google_refresh_token")
+      .eq("tenant_id", ctx.tenantId)
+      .not("google_refresh_token", "is", null);
+    const calendars = await Promise.all(
+      (agents ?? []).map((a) => listGoogleCalendarBusy(a.google_refresh_token as string, date))
+    );
+    for (const intervals of calendars) busy.push(...(intervals ?? []));
+  }
+
+  const free: string[] = [];
+  const taken: string[] = [];
+  for (let slot = toMinutes(hours.open); slot + VISIT_DURATION_MINUTES <= toMinutes(hours.close); slot += VISIT_DURATION_MINUTES) {
+    if (slot < earliest) continue;
+    const overlaps = busy.some((b) => slot < b.end && slot + VISIT_DURATION_MINUTES > b.start);
+    (overlaps ? taken : free).push(toTime(slot));
+  }
+
+  return { free, busy: taken };
+}
+
+async function executeCheckAvailability(
+  input: z.infer<typeof CheckAvailabilityInput>,
+  ctx: ToolContext
+): Promise<string> {
+  const availability = await getAvailability(ctx, input.date);
+  if (typeof availability === "string") return availability;
+
+  const libres = availability.free.length ? availability.free.join(", ") : "ninguno";
+  const ocupados = availability.busy.length ? availability.busy.join(", ") : "ninguno";
+  return `Disponibilidad para visitas el ${input.date} (turnos de ${VISIT_DURATION_MINUTES} min): libres ${libres}; ocupados ${ocupados}.`;
 }
 
 async function executeEscalateToHuman(

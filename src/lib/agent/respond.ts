@@ -11,6 +11,18 @@ const MAX_TOOL_ITERATIONS = 4;
 
 const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
+function formatNowBuenosAires(): string {
+  return new Date().toLocaleString("es-AR", {
+    timeZone: "America/Argentina/Buenos_Aires",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export interface GenerateAgentReplyParams extends ToolContext {
   history: Content[];
   userMessage: string;
@@ -40,7 +52,7 @@ export async function generateAgentReply(params: GenerateAgentReplyParams): Prom
       model: AGENT_MODEL,
       contents,
       config: {
-        systemInstruction: getSystemPrompt(),
+        systemInstruction: `${getSystemPrompt()}\n\nFecha y hora actual (Buenos Aires): ${formatNowBuenosAires()}.`,
         tools: [{ functionDeclarations: AGENT_TOOLS }],
       },
     });

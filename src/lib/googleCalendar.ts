@@ -112,6 +112,60 @@ function addMinutes(date: string, time: string, minutes: number): { date: string
   };
 }
 
+export interface BusyInterval {
+  /** Minutos desde las 00:00 (hora de Buenos Aires) del día consultado. */
+  start: number;
+  end: number;
+}
+
+interface GoogleEventTime {
+  dateTime?: string;
+  date?: string;
+}
+
+/**
+ * Devuelve los intervalos ocupados de un día en el calendario primario del agente.
+ * Ignora los eventos marcados como "Libre" (transparency: transparent) — por default así
+ * quedan los eventos de día completo (feriados, cumpleaños), que no deberían bloquear visitas.
+ * Si falla (token revocado, API caída) devuelve null para que el llamador decida qué hacer.
+ */
+export async function listGoogleCalendarBusy(refreshToken: string, date: string): Promise<BusyInterval[] | null> {
+  const accessToken = await getAccessToken(refreshToken);
+  if (!accessToken) return null;
+
+  const dayStart = Date.parse(`${date}T00:00:00-03:00`);
+  const dayEnd = dayStart + 24 * 60 * 60 * 1000;
+  const params = new URLSearchParams({
+    timeMin: new Date(dayStart).toISOString(),
+    timeMax: new Date(dayEnd).toISOString(),
+    singleEvents: "true",
+    orderBy: "startTime",
+  });
+
+  const res = await fetch(`${CALENDAR_EVENTS_ENDPOINT}?${params}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  if (!res.ok) {
+    console.error("Google Calendar events.list error:", res.status, await res.text());
+    return null;
+  }
+
+  const data = (await res.json()) as {
+    items?: { start?: GoogleEventTime; end?: GoogleEventTime; transparency?: string; status?: string }[];
+  };
+
+  const toMinutes = (time: GoogleEventTime | undefined, fallback: number) => {
+    if (!time?.dateTime) return fallback;
+    const minutes = (Date.parse(time.dateTime) - dayStart) / 60000;
+    return Math.min(Math.max(minutes, 0), 24 * 60);
+  };
+
+  return (data.items ?? [])
+    .filter((e) => e.status !== "cancelled" && e.transparency !== "transparent")
+    .map((e) => ({ start: toMinutes(e.start, 0), end: toMinutes(e.end, 24 * 60) }));
+}
+
 interface CalendarEventArgs {
   refreshToken: string;
   summary: string;
