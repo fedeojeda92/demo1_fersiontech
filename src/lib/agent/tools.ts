@@ -113,11 +113,21 @@ async function executeSearchProperties(
   return properties
     .slice(0, 5)
     .map((p) => {
-      const ambientes = p.bedrooms ? `${p.bedrooms} amb.` : null;
-      const cochera = p.garage ? "con cochera" : null;
-      const tour = p.hasVirtualTour ? "con tour 360°" : null;
-      const detalles = [ambientes, `${p.area} m²`, cochera, tour].filter(Boolean).join(", ");
-      return `- ID ${p.id}: ${p.zone}, ${p.type} en ${p.operation}, ${p.currency} ${p.price} (${detalles}). Fotos y tour: ${getSiteUrl()}/es/propiedades/${p.slug}`;
+      const caracteristicas = [
+        p.bedrooms ? `${p.bedrooms} amb.` : null,
+        p.bathrooms ? `${p.bathrooms} baños` : null,
+        `${p.area} m²`,
+        p.garage ? `${p.garage} cochera(s)` : null,
+        ...p.features,
+      ]
+        .filter(Boolean)
+        .join(", ");
+      const enLaWeb = p.hasVirtualTour ? "fotos y tour virtual 360°" : "fotos";
+      return [
+        `- ID ${p.id}: ${p.type} en ${p.operation} en ${p.zone}, ${p.currency} ${p.price}`,
+        `  Características de la propiedad: ${caracteristicas}`,
+        `  Disponible en la web (no es una característica de la propiedad): ${enLaWeb} en ${getSiteUrl()}/es/propiedades/${p.slug}`,
+      ].join("\n");
     })
     .join("\n");
 }
