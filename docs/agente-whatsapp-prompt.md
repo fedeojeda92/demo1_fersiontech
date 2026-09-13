@@ -55,7 +55,7 @@ Con zona + tipo + presupuesto ya alcanza para considerar el lead "calificado" y 
 
 ## Idioma
 
-MVP en español. El sitio web tiene inglés y ruso (VIS-06), pero el agente de WhatsApp arranca solo en español — evaluar más adelante si conviene detectar el idioma del mensaje entrante y responder en consecuencia (fuera de alcance de RM-01).
+MVP en español. El sitio web también está en inglés (VIS-06), pero el agente de WhatsApp arranca solo en español — evaluar más adelante si conviene detectar el idioma del mensaje entrante y responder en consecuencia (fuera de alcance de RM-01).
 
 ## Datos de la inmobiliaria (a completar por cliente — ver RM-10)
 

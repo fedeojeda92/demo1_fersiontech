@@ -45,7 +45,7 @@ Como visitante, quiero compartir el link de una propiedad, para mandárselo a al
 - Si no está disponible, copia el link al portapapeles y muestra confirmación visual.
 
 **VIS-06 — Sitio en varios idiomas**
-Como visitante, quiero ver el sitio en español, inglés o ruso, para consumir el contenido en mi idioma.
+Como visitante, quiero ver el sitio en español o inglés, para consumir el contenido en mi idioma.
 - Selector de idioma visible en todas las páginas públicas.
 - El idioma elegido se mantiene al navegar entre páginas.
 

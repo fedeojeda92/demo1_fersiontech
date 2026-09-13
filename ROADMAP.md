@@ -10,14 +10,27 @@
 
 ## 👉 Próxima tarea al retomar
 
-Sesión del 2026-09-13 (noche): **Fase 1.A (agente conversacional) terminada — RM-01 a RM-09 hechos y probados en vivo.** El agente funciona de punta a punta: calificación → búsqueda real en el catálogo → agendamiento con evento real en Google Calendar → derivación a humano, y se probaron 12 conversaciones distintas incluyendo casos límite (zona sin resultados, fuera de tema, mensajes duplicados, tipo de mensaje no soportado, agendar sin propiedad elegida) sin fallos ni datos inventados. Se usa **Google Gemini** (gratis) en vez de Claude/Anthropic, por decisión explícita de no gastar plata todavía (ver BL-06) — el código quedó desacoplado del proveedor (`src/lib/agent/respond.ts` es la única pieza que habría que tocar para cambiarlo el día de mañana).
+Sesión del 2026-09-13 (cierre): **la demo quedó funcionando en producción y con los datos de prueba limpios.** Fase 1 completa (1.A + 1.B, salvo BL-03 que es parte del onboarding de cada cliente) y el ítem 1 de Fase 4 hecho: el agente de WhatsApp con IA responde mensajes reales en `demo1-fersiontech.vercel.app`, consulta disponibilidad real antes de agendar, y la web tiene botón flotante de WhatsApp hacia el número del agente. Lo que falta para salir a vender es comercial/legal, no técnico.
 
-1. **Fase 1 (1.A + 1.B) queda completa** — el producto ya está en condiciones de mostrarse/venderse con el número de prueba (alcanza para hacer demos en vivo, incluso que un cliente potencial le escriba él mismo, agregándolo como destinatario de prueba en Meta).
-2. **BL-03 (número de WhatsApp Business real) NO es un paso previo a vender** — es un paso del **onboarding de cada cliente que compra** (cada inmobiliaria necesita registrar *su propio* número, no el nuestro). Ya quedó documentado como parte del alta de cliente nuevo en `docs/onboarding-cliente-nuevo.md` (punto 4). Se saca de la lista de bloqueantes de Fase 1.B y se hace cuando aparezca el primer cliente real.
-3. **Nota técnica para quien retome**: los nombres/cuotas de modelo de Gemini cambian rápido. Se usa `gemini-3.1-flash-lite` (constante `AGENT_MODEL` en `src/lib/agent/respond.ts`) porque el modelo "grande" recomendado (`gemini-3.6-flash`) tiene solo 20 pedidos/día gratis — se agotó en la misma sesión de pruebas. Si `gemini-3.1-flash-lite` empieza a fallar (404 "no longer available") o da error 429 de cuota, revisar en [console.cloud.google.com](https://console.cloud.google.com) (proyecto de la API key) o probar otro modelo `*-flash-lite` de la lista que devuelve `GET https://generativelanguage.googleapis.com/v1beta/models?key=...`.
-4. **Recordatorio importante**: no lanzar ningún cliente real a producción sin antes upgradear Vercel a Pro (ver BL-06) — Hobby prohíbe uso comercial.
+**Próximos pasos, en orden:**
+1. **Guión del pitch** para la demo/reunión (Fase 5, ítem 4).
+2. **PDF one-pager de venta** con planes y rangos orientativos (Fase 5, ítem 3).
+3. **Inscripción como monotributista** (Fase 5, ítem 1 — trámite del usuario).
+4. **Sección de planes en `www.fersiontech.com`** (Fase 4, ítem 2 — ese código no está en esta máquina).
+5. Opcionales técnicos, no bloquean vender: cargar `WHATSAPP_APP_SECRET` en Vercel (verificación de firma de webhooks), traducir al inglés los textos nuevos del calendario de turnos (hoy fijos en español), mover la demo a `demo.fersiontech.com`.
 
-**Estado de git**: el trabajo de esta sesión (política de privacidad) ya está pusheado a `origin/main` y en producción. `ROADMAP.md` y `HISTORIAS_USUARIOS.md` están comiteados localmente pero **no pusheados** (a pedido explícito del usuario) — decidir si subirlos antes de seguir.
+**Cómo hacer una demo en vivo del agente:**
+- El número del prospecto tiene que estar cargado como destinatario de prueba en Meta for Developers (app `fersion` → WhatsApp → Paso 1. Pruébalo → Destinatario → Administrar lista; máximo 5) y tiene que escribir él primero al +1 555-198-5202 (botón flotante de la web).
+- Después de cada demo, limpiar sus datos (leads `source = 'whatsapp'`, `whatsapp_messages` y eventos "Visita WhatsApp: ..." de Google Calendar) si no son reales.
+
+**Notas técnicas para quien retome:**
+- **Modelo de IA**: se usa Google Gemini `gemini-3.1-flash-lite` (constante `AGENT_MODEL` en `src/lib/agent/respond.ts`), gratis, por decisión explícita de no gastar todavía (ver BL-06). El modelo "grande" (`gemini-3.6-flash`) tiene solo 20 pedidos/día gratis. Si el agente deja de responder (404 "no longer available" o 429 de cuota), probar otro `*-flash-lite` de `GET https://generativelanguage.googleapis.com/v1beta/models?key=...`. El lite a veces inventa detalles: el prompt tiene reglas explícitas contra eso — si reaparece, reforzar el prompt o evaluar un modelo pago. `respond.ts` es la única pieza atada al proveedor.
+- **Quirks de Meta en modo prueba** (desaparecen con un número real, BL-03): la app de Meta tiene que estar **publicada** para recibir webhooks reales; la cuenta de WhatsApp Business tiene que estar suscripta a la app (`POST /{WABA_ID}/subscribed_apps`); los celulares de CABA llegan como `54911XXXXXXXX` pero solo se les puede responder como `541115XXXXXXXX` (`sendWhatsAppText` reintenta solo ante el error 131030); los mensajes de texto libre solo se pueden mandar dentro de las 24hs de que el cliente escribió (error 131047).
+- **Disponibilidad de visitas**: un solo módulo (`src/lib/availability.ts`) la calcula para la web y el agente — horario de atención (L-V 9-18, Sáb 10-14, Dom cerrado) + turnos en `leads` + eventos del Google Calendar de cada agente conectado. Si cambia el horario, cambiarlo ahí y en `/contacto` y `docs/agente-whatsapp-prompt.md`.
+- **Número de WhatsApp del sitio**: `src/lib/contact.ts` (hoy el número de prueba). Para un cliente real se cambia ahí.
+- **Recordatorio**: no lanzar ningún cliente real a producción sin antes upgradear Vercel a Pro (BL-06) — Hobby prohíbe uso comercial.
+
+**Estado de git**: todo pusheado a `origin/main` y en producción.
 
 ---
 
@@ -51,7 +64,7 @@ Versión de Scrum + Kanban para trabajar solo, con disciplina sin burocracia.
 
 ## Ya construido (Fase 0 — completo ✅)
 
-Sitio completo en español/inglés/ruso, catálogo de propiedades con fotos HDR/tour 360°, formulario de contacto y turnos, panel de administración (CRUD de propiedades con traducción y compresión automática, gestión de leads, agenda con Google Calendar, analítica de vistas), y notificaciones automáticas por WhatsApp (plantillas fijas) al recibir un lead. Detalle completo de cada funcionalidad en `HISTORIAS_USUARIOS.md`.
+Sitio completo en español/inglés (el ruso se eliminó el 2026-09-13), catálogo de propiedades con fotos HDR/tour 360°, formulario de contacto y turnos, panel de administración (CRUD de propiedades con traducción y compresión automática, gestión de leads, agenda con Google Calendar, analítica de vistas), y notificaciones automáticas por WhatsApp (plantillas fijas) al recibir un lead. Detalle completo de cada funcionalidad en `HISTORIAS_USUARIOS.md`.
 
 ---
 
@@ -112,8 +125,14 @@ Esta fase tiene **dos partes muy distintas** que conviene no confundir:
 ## Fase 4 — Actualizar la demo y la web con el producto final
 
 - [x] Reflejar en `demo1-fersiontech.vercel.app` el agente de WhatsApp funcionando — ✅ hecho 2026-09-13. Deployado a producción, webhook real suscripto en Meta, app de Meta publicada, y probado con mensajes reales desde WhatsApp (no simulados): el agente responde en vivo con datos reales y mantiene el contexto entre mensajes. Para hacer una demo, el número del prospecto tiene que estar agregado como destinatario de prueba en Meta (máx. 5) y tiene que escribir primero él. Detalles técnicos encontrados en el camino: (1) había que publicar la app de Meta — sin publicar, Meta no entrega webhooks reales; (2) la cuenta de WhatsApp Business no estaba suscripta a la app (`POST /{WABA_ID}/subscribed_apps`); (3) Meta manda los celulares de CABA como `54911XXXXXXXX` pero en modo prueba solo deja responder a `541115XXXXXXXX` — `sendWhatsAppText` reintenta con ese formato ante el error 131030. Pendiente menor: cargar `WHATSAPP_APP_SECRET` en Vercel para verificar la firma de los webhooks (hoy se omite con un warning).
+- [x] Corregir el agente con lo visto probándolo en vivo — ✅ hecho 2026-09-13: pasa el link real de cada propiedad (antes inventaba "[Link de la propiedad]"); separa las características reales de la propiedad del tour 360° de la web; tiene la fecha actual y una herramienta `check_availability` que cruza horario de atención + turnos + Google Calendar, y `schedule_visit` rechaza horarios ocupados proponiendo alternativas; reglas en el prompt contra inventar amenities o "errores técnicos".
+- [x] Calendario de turnos de la web con disponibilidad real — ✅ hecho 2026-09-13: tacha horarios ocupados (misma lógica que el agente, `src/lib/availability.ts`), deshabilita domingos, usa el horario publicado en `/contacto` y el servidor rechaza horarios ocupados al enviar.
+- [x] Botón flotante de WhatsApp animado (estilo fersiontech.com) hacia el número del agente — ✅ hecho 2026-09-13. Los botones de WhatsApp de las propiedades también apuntan al número de prueba (+1 555-198-5202, configurado en `src/lib/contact.ts`) con el título de la propiedad precargado. Los links de "llamar" siguen con el teléfono ficticio `+54 11 5555-0100`.
+- [x] Eliminar el idioma ruso de la web — ✅ hecho 2026-09-13: la web queda en español e inglés; `/ru/...` redirige a `/es/...`; la traducción automática del panel ya no genera ruso (en la base las propiedades conservan su texto `ru`, que ya no se usa).
 - [ ] Actualizar la sección de planes de `www.fersiontech.com` (Esencial / Profesional + add-on de staging).
 - [ ] Evaluar mover la demo a `demo.fersiontech.com` en vez de la URL de Vercel.
+- [ ] (Menor) Cargar `WHATSAPP_APP_SECRET` en Vercel para verificar la firma de los webhooks de Meta.
+- [ ] (Menor) Pasar a `messages/*.json` los textos nuevos del calendario de turnos (hoy fijos en español, en inglés se ven en español).
 
 ---
 
@@ -155,12 +174,13 @@ Esta fase tiene **dos partes muy distintas** que conviene no confundir:
 
 Mínimo viable: **Fase 1 completa (1.A + 1.B, sin contar BL-03 que es parte del onboarding de cada cliente — ver esa tarea) + Fase 4 hecha + al menos los ítems 1, 3 y 4 de la Fase 5**. Las Fases 3 (staging) y 6 (prueba social) pueden seguir en paralelo incluso después de arrancar el outreach — no son bloqueantes para empezar a contactar prospectos.
 
-**Con RM-01 a RM-10 y BL-01/02/04/05/06/07/08 hechos, la Fase 1 queda completa a estos efectos** — falta la Fase 4 (actualizar demo/web) y los ítems de Fase 5 (legal/operativo) para estar 100% listos para salir a vender.
+**Estado al 2026-09-13:** Fase 1 completa; Fase 4 con la demo lista (falta la sección de planes de fersiontech.com); de Fase 5 no se hizo nada todavía. **Lo que separa de salir a vender: guión del pitch, PDF one-pager, monotributo y la sección de planes de la web.**
 
 ---
 
 ## Historial de cambios
 
+- **2026-09-13 (cierre)**: el agente quedó en producción recibiendo mensajes reales de WhatsApp (webhook suscripto, app de Meta publicada, WABA suscripta a la app, reintento con formato argentino viejo en modo prueba). Correcciones tras probarlo en vivo: links reales a las propiedades, características separadas del tour 360°, consulta de disponibilidad antes de agendar (web y agente comparten `src/lib/availability.ts`, que lee turnos + Google Calendar), reglas contra inventar datos. En la web: calendario de turnos con horarios ocupados tachados, botón flotante de WhatsApp hacia el agente, eliminado el ruso. Limpieza final de datos de prueba: 0 leads, 0 mensajes de WhatsApp y borrado el evento de prueba del 14/09 en Google Calendar.
 - **2026-09-13 (noche, continuación 3)**: RM-10 hecho (`docs/onboarding-cliente-nuevo.md`). Se re-clasificó BL-03: dejó de tratarse como bloqueante para vender/demostrar el producto — el número de prueba de Meta alcanza para eso — y pasó a ser un paso del onboarding de cada cliente real (cada inmobiliaria registra su propio número). Con esto, la Fase 1 (1.A + 1.B) queda completa a los efectos de "listos para vender" (falta Fase 4 y Fase 5).
 - **2026-09-13 (noche, continuación 2)**: RM-09 hecho — 12 conversaciones de prueba distintas (zona sin resultados, alquiler con resultado real, presupuesto muy bajo, saludo vago, pedido fuera de tema, pedido directo de humano, tasación, tipo de propiedad específico, múltiples criterios a la vez, mensaje duplicado, mensaje no-texto, agendar sin propiedad elegida), todas correctas. En el camino se encontró que el modelo `gemini-3.6-flash` tiene solo 20 pedidos/día gratis (se agotó a media prueba, error 429) — se cambió a `gemini-3.1-flash-lite`, que tiene mucho más margen gratis y funciona igual de bien con las herramientas del agente. Con esto, **Fase 1.A queda completa** (RM-01 a RM-09). Se limpiaron los datos de prueba de esta sesión (leads, historial de conversación) — el evento de Google Calendar de prueba anterior lo borró el usuario a mano.
 - **2026-09-13 (noche)**: Fase 1.A probada en vivo de punta a punta. Se corrió la migración de Supabase (tabla `whatsapp_messages`, `leads.source` acepta `'whatsapp'`, `leads.email` nullable) directamente desde el SQL Editor. Se decidió no usar Anthropic (sin presupuesto, ver BL-06) y cambiar a Google Gemini (`gemini-3.6-flash`, API gratis sin tarjeta) — se reescribieron `src/lib/agent/respond.ts` y `tools.ts` para el formato de function-calling de Gemini en vez de Anthropic, se sacó la dependencia `@anthropic-ai/sdk` y se agregó `@google/genai`. Una sola conversación de prueba real (mismo teléfono como lead y como agente) validó RM-02 a RM-08 en un solo recorrido: saludo y calificación con tono correcto, búsqueda real en el catálogo (dato verificado contra la tabla `properties`, sin inventar), agendamiento con fecha/hora correctas, evento creado en Google Calendar real, y derivación a un humano ante un pedido de descuento + asesoría impositiva (con el aviso por WhatsApp llegando con el motivo específico). Nota para el futuro: los nombres de modelo de Gemini cambian rápido (`gemini-2.5-flash` ya deprecado para cuentas nuevas al momento de probar) — revisar si `gemini-3.6-flash` sigue vigente si el agente empieza a fallar.
