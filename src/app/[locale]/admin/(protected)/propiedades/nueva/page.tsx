@@ -17,7 +17,7 @@ export default async function NewPropertyPage({
         action={boundAction}
         zones={zones}
         propertyTypes={propertyTypes}
-        locale={locale as "es" | "en" | "ru"}
+        locale={locale as "es" | "en"}
       />
     </div>
   );

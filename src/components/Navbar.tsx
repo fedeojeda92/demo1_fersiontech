@@ -8,7 +8,7 @@ import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { Menu, X, Phone, Mail, ChevronDown, Globe } from "lucide-react";
 
-const localeLabels: Record<string, string> = { es: "ES", en: "EN", ru: "RU" };
+const localeLabels: Record<string, string> = { es: "ES", en: "EN" };
 
 export default function Navbar() {
   const t = useTranslations("nav");
@@ -154,7 +154,6 @@ export default function Navbar() {
                         >
                           {locale === "es" && "🇪🇸 Español"}
                           {locale === "en" && "🇬🇧 English"}
-                          {locale === "ru" && "🇷🇺 Русский"}
                         </button>
                       ))}
                     </motion.div>

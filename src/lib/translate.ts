@@ -1,6 +1,6 @@
 import "server-only";
 
-export const SUPPORTED_LOCALES = ["es", "en", "ru"] as const;
+export const SUPPORTED_LOCALES = ["es", "en"] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
 /**

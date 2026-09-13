@@ -7,6 +7,7 @@ import { Link } from "@/i18n/navigation";
 import { Property } from "@/lib/properties";
 import { BedDouble, Bath, Maximize, Car, MapPin, Eye, Video, Star } from "lucide-react";
 import { useState } from "react";
+import { whatsappChatUrl } from "@/lib/contact";
 
 interface PropertyCardProps {
   property: Property;
@@ -16,7 +17,7 @@ interface PropertyCardProps {
 export default function PropertyCard({ property, index = 0 }: PropertyCardProps) {
   const t = useTranslations("property");
   const tFeatured = useTranslations("featured");
-  const locale = useLocale() as "es" | "en" | "ru";
+  const locale = useLocale() as "es" | "en";
   const title = property.title[locale];
   const [isHovered, setIsHovered] = useState(false);
   const [currentImage, setCurrentImage] = useState(0);
@@ -165,8 +166,9 @@ export default function PropertyCard({ property, index = 0 }: PropertyCardProps)
             <p className="font-heading text-2xl text-ivory">{formatPrice(property.price, property.currency)}</p>
           </div>
           <a
-            href={`https://wa.me/5491155550100?text=Me interesa la propiedad: ${title}`}
+            href={whatsappChatUrl(`Me interesa la propiedad: ${title}`)}
             target="_blank"
+            rel="noopener noreferrer"
             className="px-4 py-2.5 bg-emerald/20 text-emerald text-xs font-semibold rounded-lg hover:bg-emerald/30 transition-colors flex items-center gap-2 border border-emerald/20"
           >
             <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">

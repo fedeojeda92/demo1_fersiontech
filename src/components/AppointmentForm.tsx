@@ -26,7 +26,7 @@ const turnoAction = createLeadAction.bind(null, "turno");
 export default function AppointmentForm({ properties }: { properties: Property[] }) {
   const t = useTranslations("appointments");
   const tPrivacy = useTranslations("privacy");
-  const locale = useLocale() as "es" | "en" | "ru";
+  const locale = useLocale() as "es" | "en";
   const [state, formAction, pending] = useActionState(turnoAction, undefined);
   const [formData, setFormData] = useState({
     name: "",

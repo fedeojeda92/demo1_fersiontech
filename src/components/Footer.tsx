@@ -169,7 +169,7 @@ export default function Footer() {
       {/* Back to top */}
       <motion.button
         onClick={scrollToTop}
-        className="fixed bottom-8 right-8 w-12 h-12 bg-champagne/20 backdrop-blur-sm text-champagne rounded-full flex items-center justify-center z-40 hover:bg-champagne/30 transition-all border border-champagne/20"
+        className="fixed bottom-24 right-7 w-12 h-12 bg-champagne/20 backdrop-blur-sm text-champagne rounded-full flex items-center justify-center z-40 hover:bg-champagne/30 transition-all border border-champagne/20"
         whileHover={{ scale: 1.1, y: -4 }}
         whileTap={{ scale: 0.95 }}
       >

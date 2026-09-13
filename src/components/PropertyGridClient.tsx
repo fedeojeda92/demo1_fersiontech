@@ -38,7 +38,7 @@ export default function PropertyGridClient({
   initialFilters: PropertyFiltersState;
 }) {
   const t = useTranslations("search");
-  const locale = useLocale() as "es" | "en" | "ru";
+  const locale = useLocale() as "es" | "en";
   const router = useRouter();
   const pathname = usePathname();
 

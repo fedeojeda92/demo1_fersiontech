@@ -302,5 +302,10 @@
     "stat3_desc": "Experiencia inmersiva",
     "stat4_label": "Video Profesional",
     "stat4_desc": "Con drone incluido"
+  },
+  "whatsapp": {
+    "aria_label": "Chatear por WhatsApp",
+    "tooltip": "¿Consultas? Escribinos por WhatsApp",
+    "default_message": "Hola, quiero hacer una consulta sobre propiedades."
   }
 }

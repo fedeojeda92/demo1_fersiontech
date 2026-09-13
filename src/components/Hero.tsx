@@ -21,7 +21,7 @@ const heroImages = [
 
 export default function Hero({ properties }: { properties: Property[] }) {
   const t = useTranslations("hero");
-  const locale = useLocale() as "es" | "en" | "ru";
+  const locale = useLocale() as "es" | "en";
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);

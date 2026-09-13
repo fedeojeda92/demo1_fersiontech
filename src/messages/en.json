@@ -302,5 +302,10 @@
     "stat3_desc": "Immersive experience",
     "stat4_label": "Professional Video",
     "stat4_desc": "Drone included"
+  },
+  "whatsapp": {
+    "aria_label": "Chat on WhatsApp",
+    "tooltip": "Questions? Message us on WhatsApp",
+    "default_message": "Hola, quiero hacer una consulta sobre propiedades."
   }
 }

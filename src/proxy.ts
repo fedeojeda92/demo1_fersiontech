@@ -5,7 +5,9 @@ import { routing } from "./i18n/routing";
 const intlMiddleware = createMiddleware(routing);
 
 // Rutas /[locale]/admin/** salvo /admin/login
-const ADMIN_PATH_RE = /^\/(es|en|ru)\/admin(?!\/login\b)(\/.*)?$/;
+const ADMIN_PATH_RE = /^\/(es|en)\/admin(?!\/login\b)(\/.*)?$/;
+// El ruso se dio de baja: links viejos /ru/... van a la misma página en español.
+const REMOVED_LOCALE_RE = /^\/ru(\/.*)?$/;
 // /admin sin prefijo de idioma (entrada directa, ej. escrita a mano en la barra de direcciones)
 const BARE_ADMIN_RE = /^\/admin\/?$/;
 
@@ -17,6 +19,11 @@ function hasSessionCookie(request: NextRequest) {
 
 export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  const removedLocale = pathname.match(REMOVED_LOCALE_RE);
+  if (removedLocale) {
+    return NextResponse.redirect(new URL(`/${routing.defaultLocale}${removedLocale[1] ?? ""}`, request.url), 308);
+  }
 
   if (BARE_ADMIN_RE.test(pathname)) {
     const destination = hasSessionCookie(request) ? "dashboard" : "login";
@@ -34,5 +41,5 @@ export default function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/admin", "/(es|en|ru)/:path*"],
+  matcher: ["/", "/admin", "/ru", "/(es|en|ru)/:path*"],
 };

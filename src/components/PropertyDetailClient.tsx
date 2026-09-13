@@ -28,6 +28,7 @@ import {
   MessageCircle,
   Check,
 } from "lucide-react";
+import { whatsappChatUrl } from "@/lib/contact";
 
 export default function PropertyDetailClient({
   property,
@@ -39,7 +40,7 @@ export default function PropertyDetailClient({
   const t = useTranslations("property");
   const tNav = useTranslations("nav");
   const tFeatured = useTranslations("featured");
-  const locale = useLocale() as "es" | "en" | "ru";
+  const locale = useLocale() as "es" | "en";
   const [currentImage, setCurrentImage] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [activeTab, setActiveTab] = useState<"tour" | "photos">("tour");
@@ -323,8 +324,9 @@ export default function PropertyDetailClient({
                         {t("contact_agent")}
                       </a>
                       <a
-                        href={`https://wa.me/5491155550100?text=Me interesa la propiedad: ${title}`}
+                        href={whatsappChatUrl(`Me interesa la propiedad: ${title}`)}
                         target="_blank"
+                        rel="noopener noreferrer"
                         className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-emerald-600 text-white font-medium rounded-xl hover:bg-emerald-700 transition-all"
                       >
                         <MessageCircle size={18} />
@@ -361,8 +363,9 @@ export default function PropertyDetailClient({
                         {t("call")}
                       </a>
                       <a
-                        href="https://wa.me/5491155550100"
+                        href={whatsappChatUrl(`Me interesa la propiedad: ${title}`)}
                         target="_blank"
+                        rel="noopener noreferrer"
                         className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors"
                       >
                         <MessageCircle size={14} />

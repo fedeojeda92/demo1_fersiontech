@@ -26,7 +26,7 @@ export default async function EditPropertyPage({
         property={property}
         zones={zones}
         propertyTypes={propertyTypes}
-        locale={locale as "es" | "en" | "ru"}
+        locale={locale as "es" | "en"}
       />
     </div>
   );

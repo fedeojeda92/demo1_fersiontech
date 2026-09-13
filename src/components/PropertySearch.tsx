@@ -10,7 +10,7 @@ import { zones, propertyTypes } from "@/lib/properties";
 
 export default function PropertySearch() {
   const t = useTranslations("search");
-  const locale = useLocale() as "es" | "en" | "ru";
+  const locale = useLocale() as "es" | "en";
   const [operation, setOperation] = useState<"venta" | "alquiler">("venta");
   const [type, setType] = useState("");
   const [zone, setZone] = useState("");

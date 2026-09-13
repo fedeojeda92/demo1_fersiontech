@@ -5,7 +5,7 @@ import type { Property, propertyTypes as PropertyTypesConst, zones as ZonesConst
 import type { PropertyFormState } from "@/lib/actions/properties";
 import ImageManager from "@/components/admin/ImageManager";
 
-const LOCALE_LABELS: Record<string, string> = { es: "español", en: "inglés", ru: "ruso" };
+const LOCALE_LABELS: Record<string, string> = { es: "español", en: "inglés" };
 
 function slugify(text: string): string {
   return text
@@ -29,7 +29,7 @@ export default function PropertyForm({
   property?: Property;
   zones: typeof ZonesConst;
   propertyTypes: typeof PropertyTypesConst;
-  locale: "es" | "en" | "ru";
+  locale: "es" | "en";
 }) {
   const [state, formAction, pending] = useActionState(action, undefined);
   const [slug, setSlug] = useState(property?.slug ?? "");
