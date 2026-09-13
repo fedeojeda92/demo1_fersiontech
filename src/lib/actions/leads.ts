@@ -9,6 +9,8 @@ import { getTenantId } from "@/lib/tenant";
 import { getCurrentAgent } from "@/lib/dal";
 import { sendWhatsAppTemplate, normalizeArgentinePhone } from "@/lib/whatsapp";
 import { createGoogleCalendarEvent, isGoogleCalendarConfigured } from "@/lib/googleCalendar";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getAvailability } from "@/lib/availability";
 
 const LeadSchema = z.object({
   name: z.string().min(2, "Ingresá tu nombre completo."),
@@ -55,6 +57,16 @@ export async function createLeadAction(
 
   const supabase = await createClient();
   const tenantId = await getTenantId();
+
+  if (source === "turno" && data.appointmentDate && data.appointmentTime) {
+    const availability = await getAvailability(createAdminClient(), tenantId, data.appointmentDate);
+    const slotFree =
+      availability.ok &&
+      availability.slots.some((s) => s.time === data.appointmentTime && s.available);
+    if (!slotFree) {
+      return { success: false, error: "Ese horario ya no está disponible. Elegí otro, por favor." };
+    }
+  }
 
   const { data: lead, error } = await supabase
     .from("leads")

@@ -4,12 +4,8 @@ import type { FunctionDeclaration } from "@google/genai";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getPropertiesForTenant } from "@/lib/data/properties";
 import { attachAppointmentToLead } from "@/lib/data/whatsappLeads";
-import {
-  createGoogleCalendarEvent,
-  isGoogleCalendarConfigured,
-  listGoogleCalendarBusy,
-  type BusyInterval,
-} from "@/lib/googleCalendar";
+import { createGoogleCalendarEvent, isGoogleCalendarConfigured } from "@/lib/googleCalendar";
+import { getAvailability, VISIT_DURATION_MINUTES, type Availability } from "@/lib/availability";
 import { sendWhatsAppTemplate } from "@/lib/whatsapp";
 
 export const SearchPropertiesInput = z.object({
@@ -184,11 +180,12 @@ async function executeScheduleVisit(
     return "Ningún agente tiene el calendario conectado todavía — avisale que confirme la visita manualmente.";
   }
 
-  const availability = await getAvailability(ctx, input.date);
-  if (typeof availability === "string") return `No se agendó la visita: ${availability}`;
-  if (!availability.free.includes(input.time)) {
-    const alternativas = availability.free.length
-      ? `Horarios libres ese día: ${availability.free.join(", ")}.`
+  const availability = await getAvailability(ctx.supabase, ctx.tenantId, input.date);
+  if (!availability.ok) return `No se agendó la visita: ${describeUnavailableDate(availability.reason)}`;
+  const free = availability.slots.filter((s) => s.available).map((s) => s.time);
+  if (!free.includes(input.time)) {
+    const alternativas = free.length
+      ? `Horarios libres ese día: ${free.join(", ")}.`
       : "Ese día no quedan horarios libres, proponé otro día.";
     return `No se agendó la visita: el horario ${input.time} del ${input.date} no está disponible. ${alternativas}`;
   }
@@ -212,95 +209,27 @@ async function executeScheduleVisit(
   return `Visita agendada para el ${input.date} a las ${input.time}.`;
 }
 
-const VISIT_DURATION_MINUTES = 30;
-
-// Mantener en sync con el horario de docs/agente-whatsapp-prompt.md y la página /contacto.
-// Índice = día de la semana (0 = domingo). null = cerrado.
-const BUSINESS_HOURS: ({ open: string; close: string } | null)[] = [
-  null,
-  { open: "09:00", close: "18:00" },
-  { open: "09:00", close: "18:00" },
-  { open: "09:00", close: "18:00" },
-  { open: "09:00", close: "18:00" },
-  { open: "09:00", close: "18:00" },
-  { open: "10:00", close: "14:00" },
-];
-
-const toMinutes = (time: string) => {
-  const [h, m] = time.split(":").map(Number);
-  return h * 60 + m;
-};
-
-const toTime = (minutes: number) =>
-  `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
-
-/**
- * Horarios de visita libres/ocupados en una fecha (hora de Buenos Aires). Cruza el horario de
- * atención con los turnos ya guardados en `leads` (web y WhatsApp) y los eventos del Google
- * Calendar de cada agente conectado. Devuelve un string si la fecha no es válida para visitas.
- */
-async function getAvailability(
-  ctx: ToolContext,
-  date: string
-): Promise<{ free: string[]; busy: string[] } | string> {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(Date.parse(`${date}T12:00:00-03:00`))) {
-    return "la fecha no es válida, pedile al interesado que la confirme.";
+function describeUnavailableDate(reason: Extract<Availability, { ok: false }>["reason"]): string {
+  switch (reason) {
+    case "invalid_date":
+      return "la fecha no es válida, pedile al interesado que la confirme.";
+    case "closed":
+      return "ese día la inmobiliaria no atiende (domingo). Proponé otro día.";
+    case "past":
+      return "esa fecha ya pasó. Proponé una fecha futura.";
   }
-
-  const hours = BUSINESS_HOURS[new Date(`${date}T12:00:00-03:00`).getUTCDay()];
-  if (!hours) return "ese día la inmobiliaria no atiende (domingo). Proponé otro día.";
-
-  const nowBA = new Date(Date.now() - 3 * 60 * 60 * 1000);
-  const todayBA = nowBA.toISOString().slice(0, 10);
-  if (date < todayBA) return "esa fecha ya pasó. Proponé una fecha futura.";
-  const earliest = date === todayBA ? nowBA.getUTCHours() * 60 + nowBA.getUTCMinutes() : 0;
-
-  const busy: BusyInterval[] = [];
-
-  const { data: booked } = await ctx.supabase
-    .from("leads")
-    .select("appointment_time")
-    .eq("tenant_id", ctx.tenantId)
-    .eq("appointment_date", date)
-    .not("appointment_time", "is", null);
-  for (const row of booked ?? []) {
-    const start = toMinutes(row.appointment_time as string);
-    busy.push({ start, end: start + VISIT_DURATION_MINUTES });
-  }
-
-  if (isGoogleCalendarConfigured()) {
-    const { data: agents } = await ctx.supabase
-      .from("agents")
-      .select("google_refresh_token")
-      .eq("tenant_id", ctx.tenantId)
-      .not("google_refresh_token", "is", null);
-    const calendars = await Promise.all(
-      (agents ?? []).map((a) => listGoogleCalendarBusy(a.google_refresh_token as string, date))
-    );
-    for (const intervals of calendars) busy.push(...(intervals ?? []));
-  }
-
-  const free: string[] = [];
-  const taken: string[] = [];
-  for (let slot = toMinutes(hours.open); slot + VISIT_DURATION_MINUTES <= toMinutes(hours.close); slot += VISIT_DURATION_MINUTES) {
-    if (slot < earliest) continue;
-    const overlaps = busy.some((b) => slot < b.end && slot + VISIT_DURATION_MINUTES > b.start);
-    (overlaps ? taken : free).push(toTime(slot));
-  }
-
-  return { free, busy: taken };
 }
 
 async function executeCheckAvailability(
   input: z.infer<typeof CheckAvailabilityInput>,
   ctx: ToolContext
 ): Promise<string> {
-  const availability = await getAvailability(ctx, input.date);
-  if (typeof availability === "string") return availability;
+  const availability = await getAvailability(ctx.supabase, ctx.tenantId, input.date);
+  if (!availability.ok) return describeUnavailableDate(availability.reason);
 
-  const libres = availability.free.length ? availability.free.join(", ") : "ninguno";
-  const ocupados = availability.busy.length ? availability.busy.join(", ") : "ninguno";
-  return `Disponibilidad para visitas el ${input.date} (turnos de ${VISIT_DURATION_MINUTES} min): libres ${libres}; ocupados ${ocupados}.`;
+  const libres = availability.slots.filter((s) => s.available).map((s) => s.time);
+  const ocupados = availability.slots.filter((s) => !s.available).map((s) => s.time);
+  return `Disponibilidad para visitas el ${input.date} (turnos de ${VISIT_DURATION_MINUTES} min): libres ${libres.join(", ") || "ninguno"}; ocupados ${ocupados.join(", ") || "ninguno"}.`;
 }
 
 async function executeEscalateToHuman(

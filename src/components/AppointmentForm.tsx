@@ -1,12 +1,14 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { motion } from "framer-motion";
 import AnimatedSection from "@/components/AnimatedSection";
 import { Link } from "@/i18n/navigation";
 import type { Property } from "@/lib/properties";
 import { createLeadAction } from "@/lib/actions/leads";
+import { getAvailabilityAction } from "@/lib/actions/availability";
+import type { Availability } from "@/lib/availability";
 import {
   Calendar,
   Clock,
@@ -36,11 +38,23 @@ export default function AppointmentForm({ properties }: { properties: Property[]
     message: "",
   });
   const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const [availability, setAvailability] = useState<Availability | null>(null);
+  const [loadingSlots, setLoadingSlots] = useState(false);
 
-  const availableTimes = [
-    "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
-    "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00",
-  ];
+  const requestedDate = useRef("");
+
+  const selectDate = async (date: string) => {
+    requestedDate.current = date;
+    setFormData((prev) => ({ ...prev, date, time: "" }));
+    setAvailability(null);
+    setLoadingSlots(true);
+    try {
+      const result = await getAvailabilityAction(date);
+      if (requestedDate.current === date) setAvailability(result);
+    } finally {
+      if (requestedDate.current === date) setLoadingSlots(false);
+    }
+  };
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -230,14 +244,17 @@ export default function AppointmentForm({ properties }: { properties: Property[]
                     const day = i + 1;
                     const isSelected = formData.date === `${selectedMonth.getFullYear()}-${String(selectedMonth.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
                     const isToday = new Date().getDate() === day && new Date().getMonth() === selectedMonth.getMonth() && new Date().getFullYear() === selectedMonth.getFullYear();
-                    const isPast = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), day) < new Date(new Date().setHours(0, 0, 0, 0));
+                    const dayDate = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), day);
+                    const isPast = dayDate < new Date(new Date().setHours(0, 0, 0, 0));
+                    const isClosed = dayDate.getDay() === 0;
+                    const isDisabled = isPast || isClosed;
 
                     return (
                       <button
-                        key={day} disabled={isPast}
-                        onClick={() => setFormData({ ...formData, date: `${selectedMonth.getFullYear()}-${String(selectedMonth.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}` })}
+                        key={day} type="button" disabled={isDisabled}
+                        onClick={() => selectDate(`${selectedMonth.getFullYear()}-${String(selectedMonth.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`)}
                         className={`h-10 rounded-lg text-sm font-medium transition-all ${
-                          isPast ? "text-ivory/10 cursor-not-allowed"
+                          isDisabled ? "text-ivory/10 cursor-not-allowed"
                           : isSelected ? "bg-gradient-to-r from-champagne-dark via-champagne to-champagne-light text-obsidian"
                           : isToday ? "bg-champagne/10 text-champagne border border-champagne/20"
                           : "text-ivory/60 hover:bg-ivory/5"
@@ -254,21 +271,43 @@ export default function AppointmentForm({ properties }: { properties: Property[]
                     <Clock size={18} className="text-champagne" />
                     {t("calendar.available_hours")}
                   </h4>
-                  <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
-                    {availableTimes.map((time) => (
-                      <button
-                        key={time}
-                        onClick={() => setFormData({ ...formData, time })}
-                        className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                          formData.time === time
-                            ? "bg-gradient-to-r from-champagne-dark via-champagne to-champagne-light text-obsidian"
-                            : "bg-ivory/5 text-ivory/60 hover:bg-ivory/10 border border-ivory/10"
-                        }`}
-                      >
-                        {time}
-                      </button>
-                    ))}
-                  </div>
+                  {!formData.date ? (
+                    <p className="text-sm text-ivory/40">Elegí un día en el calendario para ver los horarios.</p>
+                  ) : loadingSlots ? (
+                    <p className="text-sm text-ivory/40">Consultando disponibilidad...</p>
+                  ) : availability && !availability.ok ? (
+                    <p className="text-sm text-ivory/40">
+                      {availability.reason === "closed"
+                        ? "Ese día no atendemos. Elegí otro día."
+                        : availability.reason === "past"
+                          ? "Esa fecha ya pasó. Elegí otro día."
+                          : "No pudimos consultar ese día. Probá con otra fecha."}
+                    </p>
+                  ) : availability?.ok && availability.slots.length === 0 ? (
+                    <p className="text-sm text-ivory/40">No quedan horarios para ese día. Elegí otro día.</p>
+                  ) : (
+                    <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
+                      {availability?.ok &&
+                        availability.slots.map(({ time, available }) => (
+                          <button
+                            key={time}
+                            type="button"
+                            disabled={!available}
+                            title={available ? undefined : "Horario no disponible"}
+                            onClick={() => setFormData({ ...formData, time })}
+                            className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                              !available
+                                ? "bg-ivory/[0.02] text-ivory/20 line-through border border-ivory/5 cursor-not-allowed"
+                                : formData.time === time
+                                  ? "bg-gradient-to-r from-champagne-dark via-champagne to-champagne-light text-obsidian"
+                                  : "bg-ivory/5 text-ivory/60 hover:bg-ivory/10 border border-ivory/10"
+                            }`}
+                          >
+                            {time}
+                          </button>
+                        ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </AnimatedSection>
