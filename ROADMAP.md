@@ -10,14 +10,14 @@
 
 ## 👉 Próxima tarea al retomar
 
-Sesión del 2026-09-13 (cierre): **la demo quedó funcionando en producción y con los datos de prueba limpios.** Fase 1 completa (1.A + 1.B, salvo BL-03 que es parte del onboarding de cada cliente) y el ítem 1 de Fase 4 hecho: el agente de WhatsApp con IA responde mensajes reales en `demo1-fersiontech.vercel.app`, consulta disponibilidad real antes de agendar, y la web tiene botón flotante de WhatsApp hacia el número del agente. Lo que falta para salir a vender es comercial/legal, no técnico.
+Sesión del 2026-09-13 (cierre): **la demo quedó funcionando en producción y con los datos de prueba limpios.** Fase 1 completa (1.A + 1.B, salvo BL-03 que es parte del onboarding de cada cliente) y el ítem 1 de Fase 4 hecho: el agente de WhatsApp con IA responde mensajes reales en `demo.fersiontech.com`, consulta disponibilidad real antes de agendar, y la web tiene botón flotante de WhatsApp hacia el número del agente. Lo que falta para salir a vender es comercial/legal, no técnico.
 
 **Próximos pasos, en orden:**
-1. **Guión del pitch** para la demo/reunión (Fase 5, ítem 4).
+1. **Revisar el guión del pitch** (`docs/guion-pitch.md`, borrador completo) y ajustarlo (Fase 5, ítem 4).
 2. **PDF one-pager de venta** con planes y rangos orientativos (Fase 5, ítem 3).
 3. **Inscripción como monotributista** (Fase 5, ítem 1 — trámite del usuario).
 4. **Sección de planes en `www.fersiontech.com`** (Fase 4, ítem 2 — ese código no está en esta máquina).
-5. Opcionales técnicos, no bloquean vender: cargar `WHATSAPP_APP_SECRET` en Vercel (verificación de firma de webhooks), traducir al inglés los textos nuevos del calendario de turnos (hoy fijos en español), mover la demo a `demo.fersiontech.com`.
+5. Opcionales técnicos, no bloquean vender: cargar `WHATSAPP_APP_SECRET` en Vercel (verificación de firma de webhooks), traducir al inglés los textos nuevos del calendario de turnos (hoy fijos en español), actualizar en Meta la URL del webhook y de la política de privacidad al dominio nuevo (la vieja de Vercel sigue funcionando).
 
 **Cómo hacer una demo en vivo del agente:**
 - El número del prospecto tiene que estar cargado como destinatario de prueba en Meta for Developers (app `fersion` → WhatsApp → Paso 1. Pruébalo → Destinatario → Administrar lista; máximo 5) y tiene que escribir él primero al +1 555-198-5202 (botón flotante de la web).
@@ -130,7 +130,7 @@ Esta fase tiene **dos partes muy distintas** que conviene no confundir:
 - [x] Botón flotante de WhatsApp animado (estilo fersiontech.com) hacia el número del agente — ✅ hecho 2026-09-13. Los botones de WhatsApp de las propiedades también apuntan al número de prueba (+1 555-198-5202, configurado en `src/lib/contact.ts`) con el título de la propiedad precargado. Los links de "llamar" siguen con el teléfono ficticio `+54 11 5555-0100`.
 - [x] Eliminar el idioma ruso de la web — ✅ hecho 2026-09-13: la web queda en español e inglés; `/ru/...` redirige a `/es/...`; la traducción automática del panel ya no genera ruso (en la base las propiedades conservan su texto `ru`, que ya no se usa).
 - [ ] Actualizar la sección de planes de `www.fersiontech.com` (Esencial / Profesional + add-on de staging).
-- [ ] Evaluar mover la demo a `demo.fersiontech.com` en vez de la URL de Vercel.
+- [x] Mover la demo a `demo.fersiontech.com` — ✅ hecho 2026-09-13: dominio agregado en Vercel (Production) y CNAME `demo` en el DNS de Hostinger. Sin costo extra (subdominio del dominio existente). `demo1-fersiontech.vercel.app` sigue funcionando.
 - [ ] (Menor) Cargar `WHATSAPP_APP_SECRET` en Vercel para verificar la firma de los webhooks de Meta.
 - [ ] (Menor) Pasar a `messages/*.json` los textos nuevos del calendario de turnos (hoy fijos en español, en inglés se ven en español).
 
@@ -141,7 +141,7 @@ Esta fase tiene **dos partes muy distintas** que conviene no confundir:
 - [ ] Inscripción como monotributista.
 - [ ] Definir método de cobro en USD para clientes de EE.UU. (Wise, Payoneer, o similar).
 - [ ] Armar PDF one-pager de venta (planes con rangos orientativos, sin precio fijo).
-- [ ] Armar guión de pitch para la demo/reunión de venta.
+- [ ] Armar guión de pitch para la demo/reunión de venta — borrador completo en `docs/guion-pitch.md` (2026-09-13), falta revisarlo.
 - [ ] Armar tracker de prospectos (Sheets/Notion).
 - [ ] Configurar sistema de agendamiento de demos (Calendly o similar).
 
@@ -180,6 +180,7 @@ Mínimo viable: **Fase 1 completa (1.A + 1.B, sin contar BL-03 que es parte del 
 
 ## Historial de cambios
 
+- **2026-09-13 (cierre 2)**: la demo pasó a `demo.fersiontech.com` (Vercel + CNAME en Hostinger). Borrador del guión de pitch en `docs/guion-pitch.md`.
 - **2026-09-13 (cierre)**: el agente quedó en producción recibiendo mensajes reales de WhatsApp (webhook suscripto, app de Meta publicada, WABA suscripta a la app, reintento con formato argentino viejo en modo prueba). Correcciones tras probarlo en vivo: links reales a las propiedades, características separadas del tour 360°, consulta de disponibilidad antes de agendar (web y agente comparten `src/lib/availability.ts`, que lee turnos + Google Calendar), reglas contra inventar datos. En la web: calendario de turnos con horarios ocupados tachados, botón flotante de WhatsApp hacia el agente, eliminado el ruso. Limpieza final de datos de prueba: 0 leads, 0 mensajes de WhatsApp y borrado el evento de prueba del 14/09 en Google Calendar.
 - **2026-09-13 (noche, continuación 3)**: RM-10 hecho (`docs/onboarding-cliente-nuevo.md`). Se re-clasificó BL-03: dejó de tratarse como bloqueante para vender/demostrar el producto — el número de prueba de Meta alcanza para eso — y pasó a ser un paso del onboarding de cada cliente real (cada inmobiliaria registra su propio número). Con esto, la Fase 1 (1.A + 1.B) queda completa a los efectos de "listos para vender" (falta Fase 4 y Fase 5).
 - **2026-09-13 (noche, continuación 2)**: RM-09 hecho — 12 conversaciones de prueba distintas (zona sin resultados, alquiler con resultado real, presupuesto muy bajo, saludo vago, pedido fuera de tema, pedido directo de humano, tasación, tipo de propiedad específico, múltiples criterios a la vez, mensaje duplicado, mensaje no-texto, agendar sin propiedad elegida), todas correctas. En el camino se encontró que el modelo `gemini-3.6-flash` tiene solo 20 pedidos/día gratis (se agotó a media prueba, error 429) — se cambió a `gemini-3.1-flash-lite`, que tiene mucho más margen gratis y funciona igual de bien con las herramientas del agente. Con esto, **Fase 1.A queda completa** (RM-01 a RM-09). Se limpiaron los datos de prueba de esta sesión (leads, historial de conversación) — el evento de Google Calendar de prueba anterior lo borró el usuario a mano.
