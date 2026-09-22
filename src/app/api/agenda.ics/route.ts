@@ -28,7 +28,7 @@ export async function GET(request: Request) {
   const { data, error } = await supabase
     .from("leads")
     .select("id, name, phone, email, appointment_date, appointment_time, properties(title, address)")
-    .eq("source", "turno")
+    .in("source", ["turno", "whatsapp"])
     .not("appointment_date", "is", null);
 
   if (error) {

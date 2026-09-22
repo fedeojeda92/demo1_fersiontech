@@ -39,7 +39,7 @@ export default async function AdminAgendaPage({
     .from("leads")
     .select("id, name, phone, email, appointment_date, appointment_time, status, properties(title)")
     .eq("tenant_id", tenantId)
-    .eq("source", "turno")
+    .in("source", ["turno", "whatsapp"])
     .not("appointment_date", "is", null)
     .order("appointment_date", { ascending: true })
     .order("appointment_time", { ascending: true });
