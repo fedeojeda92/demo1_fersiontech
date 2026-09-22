@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Clock, Phone, Mail, Home, X } from "lucide-react";
+import { useMemo, useState, useTransition } from "react";
+import { Clock, Phone, Mail, Home, X, Trash2 } from "lucide-react";
 import TurnosCalendar, { type TurnoEventInput } from "./TurnosCalendar";
+import { cancelAppointmentAction } from "@/lib/actions/leads";
 
 export interface AgendaTurno {
   id: string;
@@ -24,9 +25,26 @@ function formatDateLong(date: string) {
   });
 }
 
-export default function AgendaBoard({ turnos, events }: { turnos: AgendaTurno[]; events: TurnoEventInput[] }) {
+export default function AgendaBoard({
+  locale,
+  turnos,
+  events,
+}: {
+  locale: string;
+  turnos: AgendaTurno[];
+  events: TurnoEventInput[];
+}) {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTurno, setSelectedTurno] = useState<AgendaTurno | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  function handleCancel(turno: AgendaTurno) {
+    if (!confirm(`¿Eliminar el turno de ${turno.name}? Esta acción no se puede deshacer.`)) return;
+    startTransition(async () => {
+      await cancelAppointmentAction(locale, turno.id);
+      setSelectedTurno(null);
+    });
+  }
 
   const turnosByDate = useMemo(() => {
     const map = new Map<string, AgendaTurno[]>();
@@ -63,27 +81,40 @@ export default function AgendaBoard({ turnos, events }: { turnos: AgendaTurno[];
           ) : (
             <div className="glass-card rounded-2xl p-6 space-y-1">
               {dayTurnos.map((turno) => (
-                <button
+                <div
                   key={turno.id}
-                  type="button"
-                  onClick={() => setSelectedTurno(turno)}
-                  className="w-full flex flex-wrap items-center gap-x-6 gap-y-1 py-3 px-2 -mx-2 border-b border-ivory/5 last:border-0 text-sm text-left rounded-lg hover:bg-ivory/5 transition-colors"
+                  className="w-full flex flex-wrap items-center gap-x-6 gap-y-1 py-3 px-2 -mx-2 border-b border-ivory/5 last:border-0 text-sm rounded-lg hover:bg-ivory/5 transition-colors"
                 >
-                  <span className="flex items-center gap-1.5 text-champagne font-medium w-16">
-                    <Clock size={14} />
-                    {turno.time ?? "-"}
-                  </span>
-                  <span className="text-ivory">{turno.name}</span>
-                  {turno.propertyTitle && (
-                    <span className="flex items-center gap-1.5 text-ivory/50">
-                      <Home size={14} />
-                      {turno.propertyTitle}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTurno(turno)}
+                    className="flex flex-1 flex-wrap items-center gap-x-6 gap-y-1 text-left"
+                  >
+                    <span className="flex items-center gap-1.5 text-champagne font-medium w-16">
+                      <Clock size={14} />
+                      {turno.time ?? "-"}
                     </span>
-                  )}
-                  <span className="ml-auto text-xs px-2.5 py-1 rounded-full bg-champagne/10 text-champagne">
+                    <span className="text-ivory">{turno.name}</span>
+                    {turno.propertyTitle && (
+                      <span className="flex items-center gap-1.5 text-ivory/50">
+                        <Home size={14} />
+                        {turno.propertyTitle}
+                      </span>
+                    )}
+                  </button>
+                  <span className="text-xs px-2.5 py-1 rounded-full bg-champagne/10 text-champagne">
                     {turno.status}
                   </span>
-                </button>
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => handleCancel(turno)}
+                    className="p-2 rounded-lg text-ivory/40 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+                    title="Eliminar turno"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               ))}
             </div>
           )}
@@ -126,10 +157,19 @@ export default function AgendaBoard({ turnos, events }: { turnos: AgendaTurno[];
                 <Mail size={16} className="text-champagne shrink-0" />
                 {selectedTurno.email}
               </div>
-              <div className="pt-2">
+              <div className="pt-2 flex items-center justify-between">
                 <span className="text-xs px-2.5 py-1 rounded-full bg-champagne/10 text-champagne">
                   {selectedTurno.status}
                 </span>
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => handleCancel(selectedTurno)}
+                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+                >
+                  <Trash2 size={14} />
+                  Eliminar turno
+                </button>
               </div>
             </div>
           </div>

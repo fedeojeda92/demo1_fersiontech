@@ -109,6 +109,25 @@ export async function createLeadAction(
   return { success: true };
 }
 
+/**
+ * Cancela un turno agendado (web o WhatsApp): borra la fecha/hora de la visita para que
+ * deje de aparecer en /admin/agenda y en el feed .ics, sin borrar el lead en sí. No borra el
+ * evento del Google Calendar del agente porque hoy no guardamos su ID — hay que cancelarlo
+ * a mano ahí si ya se creó.
+ */
+export async function cancelAppointmentAction(locale: string, leadId: string): Promise<void> {
+  const agent = await getCurrentAgent(locale);
+  const supabase = await createClient();
+
+  await supabase
+    .from("leads")
+    .update({ appointment_date: null, appointment_time: null })
+    .eq("id", leadId)
+    .eq("tenant_id", agent.tenant_id);
+
+  revalidatePath(`/${locale}/admin/agenda`);
+}
+
 export async function updateLeadStatusAction(
   locale: string,
   leadId: string,

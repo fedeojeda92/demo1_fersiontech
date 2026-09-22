@@ -142,7 +142,7 @@ export default async function AdminAgendaPage({
         <CopyIcsLink url={icsUrl} />
       </div>
 
-      <AgendaBoard turnos={agendaTurnos} events={calendarEvents} />
+      <AgendaBoard locale={locale} turnos={agendaTurnos} events={calendarEvents} />
     </div>
   );
 }
