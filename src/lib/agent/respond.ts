@@ -7,7 +7,7 @@ import { AGENT_TOOLS, executeTool, type ToolContext } from "./tools";
 // solo 20 pedidos/día — se agota enseguida probando el agente. La variante "lite"
 // tiene mucho más margen gratis y hace function-calling igual de bien para este caso de uso.
 const AGENT_MODEL = "gemini-3.1-flash-lite";
-const MAX_TOOL_ITERATIONS = 4;
+const MAX_TOOL_ITERATIONS = 6;
 
 const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
@@ -21,6 +21,35 @@ function formatNowBuenosAires(): string {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+interface LeadPropertyRow {
+  property_id: string | null;
+  properties: { title: { es?: string } | null; zone: string | null } | { title: { es?: string } | null; zone: string | null }[] | null;
+}
+
+/**
+ * El historial que se manda a Gemini es solo texto (ver getRecentMessages): no incluye las
+ * llamadas a herramientas de turnos anteriores, así que el ID real de una propiedad mencionada
+ * antes se pierde apenas termina ese turno. Esto recupera el último ID que `search_properties`
+ * (o `schedule_visit`) le asoció al lead — ver rememberLeadProperty — para que el agente pueda
+ * seguir hablando de "esa propiedad" sin tener que adivinar el ID ni volver a preguntarle al
+ * interesado cuál es.
+ */
+async function getLeadPropertyContext(params: GenerateAgentReplyParams): Promise<string> {
+  const { data } = await params.supabase
+    .from("leads")
+    .select("property_id, properties(title, zone)")
+    .eq("id", params.leadId)
+    .maybeSingle<LeadPropertyRow>();
+
+  if (!data?.property_id) return "";
+
+  const property = Array.isArray(data.properties) ? data.properties[0] : data.properties;
+  const title = property?.title?.es;
+  const detalle = [title, property?.zone].filter(Boolean).join(", ");
+
+  return `\n\nPropiedad puntual de la que ya viene hablando este interesado en la conversación${detalle ? ` (${detalle})` : ""}: ID ${data.property_id}. Si sigue refiriéndose a "esta propiedad"/"la propiedad 5"/etc. sin dar otro dato, usá directamente este ID como propertyId de schedule_visit en vez de volver a preguntarle cuál es o de inventar un ID.`;
 }
 
 export interface GenerateAgentReplyParams extends ToolContext {
@@ -47,12 +76,15 @@ export async function generateAgentReply(params: GenerateAgentReplyParams): Prom
     leadId: params.leadId,
   };
 
+  const leadPropertyContext = await getLeadPropertyContext(params);
+  const systemInstruction = `${getSystemPrompt()}\n\nFecha y hora actual (Buenos Aires): ${formatNowBuenosAires()}.${leadPropertyContext}`;
+
   for (let iteration = 0; iteration < MAX_TOOL_ITERATIONS; iteration++) {
     const response = await client.models.generateContent({
       model: AGENT_MODEL,
       contents,
       config: {
-        systemInstruction: `${getSystemPrompt()}\n\nFecha y hora actual (Buenos Aires): ${formatNowBuenosAires()}.`,
+        systemInstruction,
         tools: [{ functionDeclarations: AGENT_TOOLS }],
       },
     });

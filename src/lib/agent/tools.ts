@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { FunctionDeclaration } from "@google/genai";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getPropertiesForTenant } from "@/lib/data/properties";
-import { attachAppointmentToLead } from "@/lib/data/whatsappLeads";
+import { attachAppointmentToLead, rememberLeadProperty } from "@/lib/data/whatsappLeads";
 import { createGoogleCalendarEvent, isGoogleCalendarConfigured } from "@/lib/googleCalendar";
 import { getAvailability, VISIT_DURATION_MINUTES, type Availability } from "@/lib/availability";
 import { sendWhatsAppTemplate } from "@/lib/whatsapp";
@@ -127,6 +127,10 @@ async function executeSearchProperties(
 
   if (properties.length === 0) {
     return "No se encontraron propiedades que coincidan con esa búsqueda en el catálogo.";
+  }
+
+  if (properties.length === 1) {
+    await rememberLeadProperty(ctx.supabase, ctx.leadId, properties[0].id);
   }
 
   return properties

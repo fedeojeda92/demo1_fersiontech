@@ -48,6 +48,24 @@ export async function upsertWhatsappLead(
   return { id: created.id as string, isNew: true };
 }
 
+/**
+ * Recuerda la última propiedad puntual que le interesó al lead (cuando `search_properties`
+ * devuelve un único resultado), para poder reconstruir el ID en el próximo mensaje. El
+ * historial que se le manda a Gemini solo guarda el texto de las respuestas (ver
+ * getRecentMessages), no las llamadas a herramientas — sin esto, el agente pierde el ID real
+ * de la propiedad apenas termina el turno y puede confundirse al confirmar una visita.
+ */
+export async function rememberLeadProperty(
+  supabase: SupabaseClient,
+  leadId: string,
+  propertyId: string
+): Promise<void> {
+  const { error } = await supabase.from("leads").update({ property_id: propertyId }).eq("id", leadId);
+  if (error) {
+    console.error("rememberLeadProperty:", error.message);
+  }
+}
+
 /** Actualiza el lead de WhatsApp con la visita agendada, para que se vea en el panel. */
 export async function attachAppointmentToLead(
   supabase: SupabaseClient,
