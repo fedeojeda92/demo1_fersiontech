@@ -3,7 +3,12 @@ import { z } from "zod";
 import type { FunctionDeclaration } from "@google/genai";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getPropertiesForTenant } from "@/lib/data/properties";
-import { attachAppointmentToLead, rememberLeadProperty, updateLeadContact } from "@/lib/data/whatsappLeads";
+import {
+  attachAppointmentToLead,
+  mergeDuplicateWebLeads,
+  rememberLeadProperty,
+  updateLeadContact,
+} from "@/lib/data/whatsappLeads";
 import { createGoogleCalendarEvent, isGoogleCalendarConfigured } from "@/lib/googleCalendar";
 import { getAvailability, VISIT_DURATION_MINUTES, type Availability } from "@/lib/availability";
 import { sendWhatsAppTemplate } from "@/lib/whatsapp";
@@ -312,11 +317,19 @@ async function executeSaveContact(
   input: z.infer<typeof SaveContactInput>,
   ctx: ToolContext
 ): Promise<string> {
-  await updateLeadContact(ctx.supabase, await ctx.ensureLeadId(), {
+  const leadId = await ctx.ensureLeadId();
+  await updateLeadContact(ctx.supabase, leadId, {
     name: input.name,
     phone: input.phone,
     email: input.email,
   });
+
+  // El teléfono es lo primero que permite reconocer que dos sesiones del chat eran la misma
+  // persona (la sesión va por cookie: dos pestañas = dos fichas). Ver mergeDuplicateWebLeads.
+  if (ctx.channel === "web" && input.phone) {
+    await mergeDuplicateWebLeads(ctx.supabase, ctx.tenantId, leadId, input.phone);
+  }
+
   return "Datos de contacto guardados.";
 }
 
