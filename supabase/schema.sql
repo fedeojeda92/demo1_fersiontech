@@ -220,6 +220,30 @@ end $$;
 -- Los leads de WhatsApp no tienen email (a diferencia de los formularios web).
 alter table leads alter column email drop not null;
 
+-- Permitir source 'web_demo': el chat del sitio (src/app/api/chat/route.ts), que corre el
+-- mismo agente que WhatsApp pero para visitantes anonimos de la demo. Se separa de 'whatsapp'
+-- para poder filtrarlos en /admin/leads y borrarlos de una despues de mostrar la demo:
+--   delete from leads where source = 'web_demo';
+-- Mismo bloque que arriba: busca el nombre real del constraint en vez de asumirlo.
+do $$
+declare
+  constraint_name text;
+begin
+  select con.conname into constraint_name
+  from pg_constraint con
+  join pg_class rel on rel.oid = con.conrelid
+  where rel.relname = 'leads'
+    and con.contype = 'c'
+    and pg_get_constraintdef(con.oid) ilike '%source%';
+
+  if constraint_name is not null then
+    execute format('alter table leads drop constraint %I', constraint_name);
+  end if;
+
+  alter table leads add constraint leads_source_check
+    check (source in ('turno', 'contacto', 'whatsapp', 'web_demo'));
+end $$;
+
 -- Storage: bucket publico de lectura para imagenes de propiedades.
 -- Ejecutar aparte (Storage no soporta `create table`): desde el dashboard,
 -- Storage -> New bucket -> nombre "property-images" -> Public bucket = true.

@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { FunctionDeclaration } from "@google/genai";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getPropertiesForTenant } from "@/lib/data/properties";
-import { attachAppointmentToLead, rememberLeadProperty } from "@/lib/data/whatsappLeads";
+import { attachAppointmentToLead, rememberLeadProperty, updateLeadContact } from "@/lib/data/whatsappLeads";
 import { createGoogleCalendarEvent, isGoogleCalendarConfigured } from "@/lib/googleCalendar";
 import { getAvailability, VISIT_DURATION_MINUTES, type Availability } from "@/lib/availability";
 import { sendWhatsAppTemplate } from "@/lib/whatsapp";
@@ -30,6 +30,12 @@ export const CheckAvailabilityInput = z.object({
 
 export const EscalateToHumanInput = z.object({
   reason: z.string().describe("Por qué se deriva la conversación a un humano"),
+});
+
+export const SaveContactInput = z.object({
+  name: z.string().describe("Nombre del interesado, tal como lo dijo"),
+  phone: z.string().optional().describe("Teléfono de contacto, si lo dio"),
+  email: z.string().optional().describe("Email de contacto, si lo dio"),
 });
 
 export const AGENT_TOOLS: FunctionDeclaration[] = [
@@ -77,6 +83,20 @@ export const AGENT_TOOLS: FunctionDeclaration[] = [
     },
   },
   {
+    name: "save_contact",
+    description:
+      "Guarda el nombre y el contacto (teléfono o email) del interesado en su ficha. Usar SOLO en el chat de la web, apenas el interesado los dé — en WhatsApp el teléfono ya se conoce y no hace falta. Pedirlos antes de agendar una visita: sin un contacto no se lo puede confirmar.",
+    parametersJsonSchema: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "Nombre del interesado" },
+        phone: { type: "string", description: "Teléfono de contacto" },
+        email: { type: "string", description: "Email de contacto" },
+      },
+      required: ["name"],
+    },
+  },
+  {
     name: "escalate_to_human",
     description:
       "Deriva la conversación a un agente humano (asesoría legal/impositiva, negociación de precio, pedido explícito de hablar con una persona, o cualquier caso fuera de lo que el agente puede resolver). Avisa al agente humano por WhatsApp.",
@@ -97,11 +117,31 @@ function getSiteUrl(): string {
   return "http://localhost:3000";
 }
 
+/**
+ * De dónde viene la conversación. El agente es el mismo en los dos canales; lo que cambia
+ * es qué efectos se permiten:
+ * - "whatsapp": conversación real, agenda en el Google Calendar del agente.
+ * - "web": chat abierto de la demo (cualquiera puede entrar). Guarda el lead y el turno
+ *   para que se vean en /admin/leads, pero NO escribe en el Google Calendar real —
+ *   si no, cada visitante curioso le mete un turno falso en la agenda al dueño.
+ */
+export type AgentChannel = "whatsapp" | "web";
+
 export interface ToolContext {
   supabase: SupabaseClient;
   tenantId: string;
   phone: string;
-  leadId: string;
+  channel: AgentChannel;
+  /**
+   * Devuelve el id del lead, creándolo si todavía no existe.
+   *
+   * Es perezoso por el chat web, que es público: si el lead se creara al primer mensaje,
+   * cada visitante que escribe "hola" y se va dejaría una fila vacía en `leads`. Así la
+   * ficha nace recién cuando hay algo que registrar — un contacto, una propiedad concreta
+   * o un turno. En WhatsApp no cambia nada: ahí el lead ya se creó al recibir el mensaje
+   * (quien escribe a un WhatsApp comercial ya es un lead) y esto solo devuelve su id.
+   */
+  ensureLeadId: () => Promise<string>;
 }
 
 export async function executeTool(name: string, input: unknown, ctx: ToolContext): Promise<string> {
@@ -110,6 +150,8 @@ export async function executeTool(name: string, input: unknown, ctx: ToolContext
       return executeSearchProperties(SearchPropertiesInput.parse(input), ctx);
     case "check_availability":
       return executeCheckAvailability(CheckAvailabilityInput.parse(input), ctx);
+    case "save_contact":
+      return executeSaveContact(SaveContactInput.parse(input), ctx);
     case "schedule_visit":
       return executeScheduleVisit(ScheduleVisitInput.parse(input), ctx);
     case "escalate_to_human":
@@ -130,7 +172,7 @@ async function executeSearchProperties(
   }
 
   if (properties.length === 1) {
-    await rememberLeadProperty(ctx.supabase, ctx.leadId, properties[0].id);
+    await rememberLeadProperty(ctx.supabase, await ctx.ensureLeadId(), properties[0].id);
   }
 
   return properties
@@ -170,7 +212,9 @@ async function executeScheduleVisit(
     return "No encontré esa propiedad en el catálogo, no se pudo agendar la visita.";
   }
 
-  if (!isGoogleCalendarConfigured()) {
+  // En el chat web no se escribe en el Google Calendar real (ver AgentChannel), así que
+  // tampoco se exige que esté configurado: el turno igual queda registrado en el lead.
+  if (ctx.channel === "whatsapp" && !isGoogleCalendarConfigured()) {
     return "El calendario del agente no está configurado todavía — avisale que confirme la visita manualmente.";
   }
 
@@ -180,7 +224,7 @@ async function executeScheduleVisit(
     .eq("tenant_id", ctx.tenantId)
     .not("google_refresh_token", "is", null);
 
-  if (!agents || agents.length === 0) {
+  if (ctx.channel === "whatsapp" && (!agents || agents.length === 0)) {
     return "Ningún agente tiene el calendario conectado todavía — avisale que confirme la visita manualmente.";
   }
 
@@ -195,20 +239,22 @@ async function executeScheduleVisit(
   }
 
   const title = (property.title as { es?: string })?.es ?? "Propiedad";
-  await Promise.all(
-    agents.map((a) =>
-      createGoogleCalendarEvent({
-        refreshToken: a.google_refresh_token as string,
-        summary: `Visita WhatsApp: ${title}`,
-        description: `Coordinado por el agente conversacional. Tel: ${ctx.phone}`,
-        location: property.address as string,
-        date: input.date,
-        time: input.time,
-      })
-    )
-  );
+  if (ctx.channel === "whatsapp") {
+    await Promise.all(
+      (agents ?? []).map((a) =>
+        createGoogleCalendarEvent({
+          refreshToken: a.google_refresh_token as string,
+          summary: `Visita WhatsApp: ${title}`,
+          description: `Coordinado por el agente conversacional. Tel: ${ctx.phone}`,
+          location: property.address as string,
+          date: input.date,
+          time: input.time,
+        })
+      )
+    );
+  }
 
-  await attachAppointmentToLead(ctx.supabase, ctx.leadId, input.propertyId, input.date, input.time);
+  await attachAppointmentToLead(ctx.supabase, await ctx.ensureLeadId(), input.propertyId, input.date, input.time);
 
   return `Visita agendada para el ${input.date} a las ${input.time}.`;
 }
@@ -236,6 +282,18 @@ async function executeCheckAvailability(
   return `Disponibilidad para visitas el ${input.date} (turnos de ${VISIT_DURATION_MINUTES} min): libres ${libres.join(", ") || "ninguno"}; ocupados ${ocupados.join(", ") || "ninguno"}.`;
 }
 
+async function executeSaveContact(
+  input: z.infer<typeof SaveContactInput>,
+  ctx: ToolContext
+): Promise<string> {
+  await updateLeadContact(ctx.supabase, await ctx.ensureLeadId(), {
+    name: input.name,
+    phone: input.phone,
+    email: input.email,
+  });
+  return "Datos de contacto guardados.";
+}
+
 async function executeEscalateToHuman(
   input: z.infer<typeof EscalateToHumanInput>,
   ctx: ToolContext
@@ -244,10 +302,23 @@ async function executeEscalateToHuman(
   const template = process.env.WHATSAPP_AGENT_TEMPLATE;
 
   if (agentNumber && template) {
+    // En el chat web el lead ya tiene nombre/teléfono si el visitante los dio (save_contact);
+    // ctx.phone es solo el id de sesión, que no le sirve de nada al humano.
+    const { data: lead } = await ctx.supabase
+      .from("leads")
+      .select("name, phone")
+      .eq("id", await ctx.ensureLeadId())
+      .maybeSingle();
+
+    const quien =
+      ctx.channel === "web"
+        ? [lead?.name, lead?.phone].filter(Boolean).join(" · ") || "visitante de la web (sin datos)"
+        : ctx.phone;
+
     await sendWhatsAppTemplate({
       to: agentNumber,
       templateName: template,
-      bodyParams: { nombre: ctx.phone, tipo: "whatsapp", contacto: input.reason },
+      bodyParams: { nombre: quien, tipo: ctx.channel === "web" ? "chat web" : "whatsapp", contacto: input.reason },
     });
   }
 

@@ -307,5 +307,18 @@
     "aria_label": "Chat on WhatsApp",
     "tooltip": "Questions? Message us on WhatsApp",
     "default_message": "Hola, quiero hacer una consulta sobre propiedades."
+  },
+  "chat": {
+    "aria_label": "Chat with the assistant",
+    "tooltip": "Try our AI assistant",
+    "title": "Virtual assistant",
+    "subtitle": "I reply instantly",
+    "greeting": "Hi! I'm the FS Inmobiliaria assistant. I can search the catalogue for you, walk you through any listing and book a viewing. What are you looking for?",
+    "placeholder": "Type your question...",
+    "send": "Send",
+    "close": "Close chat",
+    "thinking": "Typing",
+    "error": "I couldn't reply. Please try again in a moment.",
+    "disclaimer": "AI-generated answers over the real catalogue."
   }
 }

@@ -106,7 +106,10 @@ async function handleInboundMessage(message: WhatsAppMessage) {
     supabase,
     tenantId,
     phone: from,
-    leadId,
+    // En WhatsApp el lead ya existe: quien escribe a un WhatsApp comercial es un lead.
+    ensureLeadId: async () => leadId,
+    existingLeadId: leadId,
+    channel: "whatsapp",
     history,
     userMessage: message.text.body,
   });

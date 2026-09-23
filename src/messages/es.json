@@ -307,5 +307,18 @@
     "aria_label": "Chatear por WhatsApp",
     "tooltip": "¿Consultas? Escribinos por WhatsApp",
     "default_message": "Hola, quiero hacer una consulta sobre propiedades."
+  },
+  "chat": {
+    "aria_label": "Chatear con el asistente",
+    "tooltip": "Probá nuestro asistente con IA",
+    "title": "Asistente virtual",
+    "subtitle": "Te respondo al instante",
+    "greeting": "¡Hola! Soy el asistente de FS Inmobiliaria. Puedo buscarte propiedades del catálogo, contarte los detalles de cada una y coordinar una visita. ¿Qué estás buscando?",
+    "placeholder": "Escribí tu consulta...",
+    "send": "Enviar",
+    "close": "Cerrar el chat",
+    "thinking": "Escribiendo",
+    "error": "No pude responder. Probá de nuevo en un momento.",
+    "disclaimer": "Respuestas generadas por IA sobre el catálogo real."
   }
 }
