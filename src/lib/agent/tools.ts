@@ -71,7 +71,7 @@ export const AGENT_TOOLS: FunctionDeclaration[] = [
   {
     name: "schedule_visit",
     description:
-      "Agenda una visita a una propiedad puntual del catálogo, en el calendario del agente. Usar solo después de que el interesado eligió una propiedad concreta y confirmó un día y hora que check_availability devolvió como libre. Si el horario está ocupado, la herramienta no agenda y devuelve alternativas.",
+      "Agenda una visita a una propiedad puntual del catálogo, en el calendario del agente. Usar solo después de que el interesado eligió una propiedad concreta y confirmó un día y hora que check_availability devolvió como libre. Si el horario está ocupado, la herramienta no agenda y devuelve alternativas. En el chat de la web hay que haber guardado antes el contacto con save_contact: si no, la herramienta rechaza el pedido.",
     parametersJsonSchema: {
       type: "object",
       properties: {
@@ -197,6 +197,23 @@ async function executeSearchProperties(
     .join("\n");
 }
 
+/**
+ * ¿Sabemos ya cómo contactar a este interesado?
+ *
+ * En el chat web `phone` arranca siendo el id de sesión (`web-...`), que no es un contacto:
+ * cuenta solo si el visitante dejó un teléfono de verdad o un email. Si el lead todavía no
+ * existe tampoco hay contacto, y no se lo crea para averiguarlo.
+ */
+async function hasRealContact(ctx: ToolContext): Promise<boolean> {
+  const leadId = await ctx.ensureLeadId();
+  const { data } = await ctx.supabase.from("leads").select("phone, email").eq("id", leadId).maybeSingle();
+  if (!data) return false;
+
+  const phone = (data.phone as string | null)?.trim();
+  const email = (data.email as string | null)?.trim();
+  return Boolean((phone && !phone.startsWith("web-")) || email);
+}
+
 async function executeScheduleVisit(
   input: z.infer<typeof ScheduleVisitInput>,
   ctx: ToolContext
@@ -210,6 +227,15 @@ async function executeScheduleVisit(
 
   if (error || !property) {
     return "No encontré esa propiedad en el catálogo, no se pudo agendar la visita.";
+  }
+
+  // En el chat web no se sabe quién es el interesado hasta que lo diga: sin contacto, el
+  // turno queda imposible de confirmar o reprogramar. El prompt ya le pide al modelo que
+  // use save_contact antes de agendar, pero un prompt es una sugerencia y no siempre la
+  // cumple — el 2026-09-23 apareció en producción un turno sin nombre ni teléfono. Esto lo
+  // hace una regla en vez de un pedido: la herramienta no agenda y le dice qué le falta.
+  if (ctx.channel === "web" && !(await hasRealContact(ctx))) {
+    return "No se agendó la visita: todavía no tenemos los datos del interesado. Pedile el nombre y un teléfono o email, guardalos con save_contact, y recién ahí volvé a intentar agendar.";
   }
 
   // En el chat web no se escribe en el Google Calendar real (ver AgentChannel), así que
