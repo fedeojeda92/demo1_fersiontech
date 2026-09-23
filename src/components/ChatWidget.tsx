@@ -219,15 +219,68 @@ function Bubble({ role, children }: { role: "user" | "assistant"; children: Reac
   const isUser = role === "user";
   return (
     <div className={isUser ? "flex justify-end" : "flex justify-start"}>
+      {/*
+        `break-words` + `overflow-wrap:anywhere` son necesarios, no cosméticos: el agente
+        manda las URLs de las propiedades, que son tokens largos sin espacios y por defecto
+        desbordan la burbuja en vez de cortarse.
+      */}
       <div
-        className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+        className={`max-w-[85%] whitespace-pre-wrap break-words [overflow-wrap:anywhere] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
           isUser
             ? "rounded-br-sm bg-champagne text-obsidian"
             : "rounded-bl-sm border border-ivory/10 bg-ivory/5 text-ivory/90"
         }`}
       >
-        {children}
+        {typeof children === "string" ? <RichText text={children} /> : children}
       </div>
     </div>
   );
+}
+
+// Negrita (**texto**) y links ([texto](url)) — lo único que el modelo usa en sus respuestas.
+// La URL se acepta solo si es http(s) o una ruta del propio sitio: el texto lo genera un LLM,
+// así que un `javascript:` inventado no tiene que poder convertirse en un link clickeable.
+//
+// Se construye uno nuevo en cada llamada en vez de tenerlo como constante del módulo: un
+// regex con /g guarda posición en `lastIndex`, y compartirlo entre renders hace que una
+// pasada arranque donde terminó la anterior.
+const markdownToken = () => /\[([^\]]+)\]\((https?:\/\/[^\s)]+|\/[^\s)]*)\)|\*\*([^*\n]+)\*\*/g;
+
+/**
+ * Renderiza el markdown mínimo que manda el agente como elementos de React.
+ *
+ * Se arma a mano, sin `dangerouslySetInnerHTML` ni una librería de markdown: el texto viene
+ * de un modelo, y construyendo nodos en vez de inyectar HTML no hay forma de que una
+ * respuesta rara termine ejecutando algo. Lo que no matchea queda como texto plano.
+ */
+function RichText({ text }: { text: string }) {
+  const nodes: React.ReactNode[] = [];
+  const token = markdownToken();
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = token.exec(text)) !== null) {
+    if (match.index > lastIndex) nodes.push(text.slice(lastIndex, match.index));
+
+    const [, linkLabel, linkHref, boldText] = match;
+    if (linkHref) {
+      nodes.push(
+        <a
+          key={match.index}
+          href={linkHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium text-champagne underline underline-offset-2 hover:text-champagne-dark"
+        >
+          {linkLabel}
+        </a>
+      );
+    } else {
+      nodes.push(<strong key={match.index}>{boldText}</strong>);
+    }
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < text.length) nodes.push(text.slice(lastIndex));
+  return <>{nodes}</>;
 }

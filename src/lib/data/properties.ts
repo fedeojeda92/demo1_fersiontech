@@ -92,6 +92,37 @@ export async function getPropertiesForTenant(
   return queryProperties(supabase, tenantId, filters);
 }
 
+/** Sin acentos, sin mayúsculas y sin espacios al borde, para comparar nombres de zona. */
+function normalizeZone(zone: string): string {
+  return zone
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .trim();
+}
+
+/**
+ * Traduce el nombre de zona que llega al que está realmente guardado en la base.
+ *
+ * Las zonas se guardan como texto libre capitalizado y con acentos ("Palermo", "Núñez",
+ * "Las Cañitas"), y el filtro es una igualdad exacta. El agente conversacional le pasa a
+ * `search_properties` lo que escribió el interesado — "palermo", "nunez" — así que sin esto
+ * la búsqueda no encuentra nada y el agente termina diciendo que no hay propiedades en una
+ * zona donde sí hay. Desde la web no cambia nada: ahí la zona sale de un select con los
+ * valores exactos y el match es directo.
+ *
+ * Si no hay ninguna zona parecida, devuelve lo pedido tal cual y la búsqueda no da resultados,
+ * que es lo correcto para una zona que la inmobiliaria realmente no cubre.
+ */
+async function resolveZone(supabase: SupabaseClient, tenantId: string, zone: string): Promise<string> {
+  const { data, error } = await supabase.from("properties").select("zone").eq("tenant_id", tenantId);
+  if (error || !data) return zone;
+
+  const wanted = normalizeZone(zone);
+  const match = (data as { zone: string }[]).find((row) => normalizeZone(row.zone) === wanted);
+  return match?.zone ?? zone;
+}
+
 async function queryProperties(
   supabase: SupabaseClient,
   tenantId: string,
@@ -101,7 +132,7 @@ async function queryProperties(
 
   if (filters.operation) query = query.eq("operation", filters.operation);
   if (filters.type) query = query.eq("type", filters.type);
-  if (filters.zone) query = query.eq("zone", filters.zone);
+  if (filters.zone) query = query.eq("zone", await resolveZone(supabase, tenantId, filters.zone));
   if (filters.minRooms) query = query.gte("bedrooms", filters.minRooms);
   if (filters.minPrice) query = query.gte("price", filters.minPrice);
   if (filters.maxPrice) query = query.lte("price", filters.maxPrice);
