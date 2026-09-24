@@ -2,6 +2,13 @@ import { createClient } from "@/lib/supabase/server";
 import { getTenantId } from "@/lib/tenant";
 import LeadStatusSelect from "@/components/admin/LeadStatusSelect";
 
+const SOURCE_LABELS: Record<string, string> = {
+  turno: "Turno",
+  contacto: "Contacto",
+  whatsapp: "WhatsApp",
+  web_demo: "Chat web",
+};
+
 export default async function AdminLeadsPage({
   params,
 }: {
@@ -49,7 +56,7 @@ export default async function AdminLeadsPage({
                     {lead.email && <p>{lead.email}</p>}
                     {lead.phone && <p className="text-ivory/40">{lead.phone}</p>}
                   </td>
-                  <td className="px-6 py-3 text-ivory/60 capitalize">{lead.source}</td>
+                  <td className="px-6 py-3 text-ivory/60">{SOURCE_LABELS[lead.source] ?? lead.source}</td>
                   <td className="px-6 py-3 text-ivory/60">{propertyTitle ?? "—"}</td>
                   <td className="px-6 py-3 text-ivory/60">
                     {new Date(lead.created_at).toLocaleDateString("es-AR")}

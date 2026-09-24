@@ -39,7 +39,10 @@ export default async function AdminAgendaPage({
     .from("leads")
     .select("id, name, phone, email, appointment_date, appointment_time, status, properties(title)")
     .eq("tenant_id", tenantId)
-    .in("source", ["turno", "whatsapp"])
+    // Incluye el chat web: `availability.ts` ya cuenta esos turnos como ocupados, y si no se
+    // muestran acá el horario figura tomado sin que se vea por quién. (El feed .ics sí los
+    // deja afuera, igual que el Google Calendar: es la agenda real del agente.)
+    .in("source", ["turno", "whatsapp", "web_demo"])
     .not("appointment_date", "is", null)
     .order("appointment_date", { ascending: true })
     .order("appointment_time", { ascending: true });
