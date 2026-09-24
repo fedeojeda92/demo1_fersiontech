@@ -51,7 +51,9 @@ function mapRow(row: PropertyRow): Property {
     garage: row.garage,
     year: row.year ?? 0,
     featured: row.featured,
-    hasVirtualTour: row.has_virtual_tour,
+    // La casilla sola no alcanza: el único tour que la web puede mostrar es `tour_360`, y
+    // prometerlo sin él hace que el agente mande a ver un tour que no está en la ficha.
+    hasVirtualTour: row.has_virtual_tour && row.tour_360 != null,
     hasDroneVideo: row.has_drone_video,
     description: row.description,
     features: row.features ?? [],
