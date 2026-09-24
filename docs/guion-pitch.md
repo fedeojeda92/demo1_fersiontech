@@ -1,15 +1,19 @@
 # Guión de pitch — Demo de Fersion Tech para inmobiliarias
 
-> Para reuniones de 25-30 minutos (presencial o videollamada) con dueños o responsables comerciales de inmobiliarias. La idea central: **no vendemos una web, vendemos que ninguna consulta se pierda y que el agente llegue a la visita con el cliente ya calificado.** La demo en vivo del agente de WhatsApp es el momento fuerte — todo el guión lleva hacia ahí.
+> Para reuniones de 25-30 minutos (presencial o videollamada) con dueños o responsables comerciales de inmobiliarias. La idea central: **no vendemos una web, vendemos que ninguna consulta se pierda y que el agente llegue a la visita con el cliente ya calificado.** La demo en vivo del asistente de IA es el momento fuerte — todo el guión lleva hacia ahí.
+
+**Dos formas de mostrar el asistente** (es el mismo agente, con el mismo catálogo y las mismas reglas):
+- **Chat de la web (por defecto)**: el prospecto abre `demo.fersiontech.com` en su teléfono y toca "Probá nuestro asistente con IA". No hay que preparar nada.
+- **WhatsApp real (si ya está interesado o lo pide)**: muestra el canal que de verdad se vende y agenda en Google Calendar, pero requiere cargar su número en Meta antes (máximo 5 a la vez).
 
 ---
 
 ## 0. Antes de la reunión (checklist, 15 min)
 
-- [ ] **Cargar el número del prospecto** como destinatario de prueba en Meta for Developers (app `fersion` → WhatsApp → Paso 1. Pruébalo → Destinatario → Administrar lista). Máximo 5 números: sacar los de demos anteriores si hace falta. Meta le manda un código por WhatsApp para verificar — pedíselo al inicio de la reunión o hacelo antes si ya tenés su número.
-- [ ] **Probar el agente vos mismo** desde tu teléfono (el mismo día): escribir "hola" al +1 555-198-5202 y confirmar que responde. Si no responde, puede ser la cuota diaria gratuita de Gemini agotada — no hagas más pruebas ese día antes de la reunión.
-- [ ] **Limpiar datos de pruebas anteriores**: leads de WhatsApp, conversaciones y eventos "Visita WhatsApp: ..." en Google Calendar (ver ROADMAP, "Cómo hacer una demo en vivo").
-- [ ] Tener abiertos en pestañas: la demo (`demo.fersiontech.com`), el panel de admin (`/es/admin/leads`) logueado, y Google Calendar.
+- [ ] **Probar el agente vos mismo** el mismo día: escribir "hola" en el chat de `demo.fersiontech.com` (y al +1 555-198-5202 si vas a usar WhatsApp) y confirmar que responde. Si no responde, puede ser la cuota gratuita de Gemini — no hagas más pruebas ese día antes de la reunión.
+- [ ] **Solo si vas a usar WhatsApp**: cargar el número del prospecto como destinatario de prueba en Meta for Developers (app `fersion` → WhatsApp → Paso 1. Pruébalo → Destinatario → Administrar lista). Máximo 5 números: sacar los de demos anteriores si hace falta. Meta le manda un código por WhatsApp para verificar — pedíselo al inicio de la reunión o hacelo antes si ya tenés su número.
+- [ ] **Limpiar datos de pruebas anteriores**: `delete from leads where source = 'web_demo';` para el chat web; para WhatsApp, leads, conversaciones y eventos "Visita WhatsApp: ..." en Google Calendar (ver ROADMAP, "Cómo hacer una demo del agente"). Así el panel que le mostrás arranca limpio.
+- [ ] Tener abiertos en pestañas: la demo (`demo.fersiontech.com`), el panel de admin (`/es/admin/leads` y `/es/admin/agenda`) logueado, y Google Calendar si vas por WhatsApp.
 - [ ] Buscar 2 datos del prospecto: cuántas propiedades publica y dónde (Zonaprop, Argenprop, web propia, Instagram), y si su web tiene WhatsApp visible.
 
 ---
@@ -51,33 +55,34 @@ Repetir con sus palabras lo que te dijo, y dar el puente:
 
 ## 4. Demo en vivo (10 min)
 
-**Regla de oro: que el prospecto escriba desde SU teléfono.** Ver la respuesta llegar a su propio WhatsApp convence mucho más que cualquier explicación.
+**Regla de oro: que el prospecto escriba desde SU teléfono.** Ver responder al asistente en su propia mano convence mucho más que cualquier explicación. Por defecto, en el chat de la web; por WhatsApp si ya cargaste su número.
 
 ### 4.1 La web (2 min)
 - Mostrar la home y el catálogo: fotos profesionales, filtros.
 - Entrar a una propiedad con **tour 360°** (ej. la de Las Cañitas): "esto lo produce Sergio; el cliente recorre la propiedad antes de pedir la visita, así llegan los que realmente están interesados".
-- Señalar el **botón de WhatsApp** flotante.
+- Señalar los dos botones flotantes: **el asistente con IA** y **WhatsApp**. "Los dos los atiende el mismo asistente."
 
-### 4.2 El agente de WhatsApp (6 min)
-Pedirle que toque el botón de WhatsApp (o que escriba al +1 555-198-5202) y guiarlo con esta secuencia — dejarlo escribir con sus palabras:
+### 4.2 El asistente (6 min)
+Pedirle que abra `demo.fersiontech.com` en su teléfono y toque "Probá nuestro asistente con IA" (o que escriba al +1 555-198-5202 si vas por WhatsApp), y guiarlo con esta secuencia — dejarlo escribir con sus palabras:
 
 1. **"Hola, busco un departamento para comprar"** → el agente saluda y pregunta la zona.
    - Remarcar: "fijate que no le tira toda la información de golpe, califica como lo haría un vendedor".
 2. **"En Palermo, hasta 500 mil dólares"** → responde con la propiedad real del catálogo (el depto de Torre Excellence, USD 450.000) y sus características reales.
    - "No inventa: si no hay nada que coincida, lo dice y ofrece alternativas."
-3. **"Pasame las fotos"** → manda el link real a la propiedad con fotos y tour.
+3. **"Pasame las fotos"** → manda el link real a la propiedad con fotos y tour (en el chat web se toca y abre la ficha).
 4. **"¿Puedo verlo el [día hábil próximo] a las [hora]?"** → consulta la agenda real y confirma, o si está ocupado propone otros horarios.
-   - Mostrar en otra pestaña **Google Calendar** con el evento recién creado, y el **panel de leads** con la consulta registrada.
+   - En el chat web, **antes de confirmar le pide nombre y teléfono o email** — que los ponga. "No agenda a nadie anónimo: a la visita llega alguien con quien ya tenés contacto."
+   - Mostrar en otra pestaña el **panel**: la consulta en Leads (origen "Chat web" o "WhatsApp") y el turno en Agenda. Por WhatsApp, además, el evento recién creado en **Google Calendar**.
    - "Esto pasó sin que nadie de tu equipo tocara nada."
-5. **"¿Me hacés un 20% de descuento?"** → deriva a un humano, y te llega el aviso por WhatsApp.
+5. **"¿Me hacés un 20% de descuento?"** → deriva a un humano, y te llega el aviso por WhatsApp (en los dos canales).
    - "El asistente sabe qué no le corresponde: precio, temas legales o impositivos, o si el cliente pide hablar con una persona. Ahí te avisa y sigue tu equipo."
 
 ### 4.3 El panel (2 min)
-- Leads con origen (web, turno, WhatsApp) y estados.
+- Leads con origen (contacto, turno, WhatsApp, chat web) y estados.
 - Agenda con los turnos y la sincronización con Google Calendar.
 - Carga de propiedades con traducción automática al inglés.
 
-> Si algo falla en vivo (no responde el agente): "Esto es la versión demo con un número de prueba que tiene límites de uso; con tu número de WhatsApp Business no aplica". Seguir con el flujo de la web y el panel, y ofrecer mandarle un video de la conversación completa.
+> Si algo falla en vivo: si el problema es WhatsApp (el número no está cargado, Meta no entrega), pasar al chat de la web — es el mismo asistente. Si no responde en ningún canal: "Esto es la versión demo, que tiene límites de uso; en la versión de tu inmobiliaria no aplica". Seguir con la web y el panel, y ofrecer mandarle el link para que lo pruebe tranquilo después.
 
 ---
 
@@ -112,6 +117,7 @@ Mostrar los planes **sin precio fijo** (ver PDF one-pager). Recomendar uno segú
 ## 7. Qué NO prometer (limitaciones reales hoy)
 
 - **El asistente responde solo en español** (la web sí está en español e inglés).
+- **Las visitas que agenda el chat de la web quedan en el panel, pero no se pasan a Google Calendar** (las de WhatsApp sí). Si el prospecto lo pregunta, decirlo tal cual.
 - **Conectar el número propio del cliente requiere verificación de Meta**, que puede tardar días — no prometer "mañana está andando".
 - **No hay integración con Zonaprop/Argenprop todavía** (está en el roadmap, no venderla como existente).
 - **No hay alta automática**: cada cliente se configura a mano (ver `docs/onboarding-cliente-nuevo.md`). Calcular unos días de implementación.
@@ -125,10 +131,16 @@ Mostrar los planes **sin precio fijo** (ver PDF one-pager). Recomendar uno segú
 1. Mandar un WhatsApp de agradecimiento con un resumen de 3 líneas: el dolor que te contó, qué le mostraste, y el próximo paso con fecha.
 2. Anotar al prospecto en el tracker (etapa, plan recomendado, objeciones, fecha de seguimiento).
 3. Si pidió propuesta: mandarla antes de la fecha acordada.
-4. Limpiar los datos de la demo (lead, conversación, evento de calendario) y, si no va a volver a probar, sacar su número de la lista de prueba de Meta.
+4. Limpiar los datos de la demo (lead, conversación, evento de calendario) y, si no va a volver a probar, sacar su número de la lista de prueba de Meta. Si le dejaste el link del chat web para que siga probando, esperar unos días antes de borrar los `web_demo`.
 
 ---
 
 ## Anexo — Versión corta (mensaje o llamada de 60 segundos)
 
 > "Hola [nombre], soy Federico de Fersion Tech. Trabajamos con inmobiliarias para que ninguna consulta se pierda: un asistente con inteligencia artificial atiende tu WhatsApp las 24 horas, responde con tus propiedades reales, filtra a los que no califican y te deja la visita agendada en tu calendario. Si querés, te lo muestro en 20 minutos y lo probás desde tu propio teléfono. ¿Te queda bien [día] a las [hora]?"
+
+**Versión para mandar en frío por escrito** (el prospecto prueba solo, sin reunión previa):
+
+> "Hola [nombre], soy Federico de Fersion Tech. Armamos para inmobiliarias un asistente con inteligencia artificial que responde las consultas al instante, las 24 horas, con las propiedades reales, y deja la visita agendada. Lo podés probar ahora desde el celular, como si fueras un cliente: entrá a demo.fersiontech.com y tocá "Probá nuestro asistente con IA". Si te interesa, te muestro en 20 minutos cómo quedaría con tus propiedades. ¿Te queda bien [día]?"
+
+Si responde que lo probó: preguntarle qué le pidió y cómo le respondió — es el mejor arranque para el descubrimiento (sección 2).
