@@ -237,14 +237,21 @@ function Bubble({ role, children }: { role: "user" | "assistant"; children: Reac
   );
 }
 
-// Negrita (**texto**) y links ([texto](url)) — lo único que el modelo usa en sus respuestas.
+// Negrita (**texto**), links ([texto](url)) y URLs sueltas — lo único que el modelo usa en sus
+// respuestas. Las URLs sueltas son el caso normal: el prompt es el mismo que el de WhatsApp
+// (que las linkea solo) y `search_properties` devuelve la dirección tal cual; sin esto el
+// link a la propiedad queda como texto sin clic.
 // La URL se acepta solo si es http(s) o una ruta del propio sitio: el texto lo genera un LLM,
 // así que un `javascript:` inventado no tiene que poder convertirse en un link clickeable.
 //
 // Se construye uno nuevo en cada llamada en vez de tenerlo como constante del módulo: un
 // regex con /g guarda posición en `lastIndex`, y compartirlo entre renders hace que una
 // pasada arranque donde terminó la anterior.
-const markdownToken = () => /\[([^\]]+)\]\((https?:\/\/[^\s)]+|\/[^\s)]*)\)|\*\*([^*\n]+)\*\*/g;
+const markdownToken = () =>
+  /\[([^\]]+)\]\((https?:\/\/[^\s)]+|\/[^\s)]*)\)|\*\*([^*\n]+)\*\*|(https?:\/\/[^\s<>()]+)/g;
+
+// Puntuación que cierra la oración y no es parte de la URL ("...excellence." o "...excellence,").
+const TRAILING_PUNCTUATION = /[.,;:!?]+$/;
 
 /**
  * Renderiza el markdown mínimo que manda el agente como elementos de React.
@@ -262,7 +269,24 @@ function RichText({ text }: { text: string }) {
   while ((match = token.exec(text)) !== null) {
     if (match.index > lastIndex) nodes.push(text.slice(lastIndex, match.index));
 
-    const [, linkLabel, linkHref, boldText] = match;
+    const [, linkLabel, linkHref, boldText, bareUrl] = match;
+    if (bareUrl) {
+      const url = bareUrl.replace(TRAILING_PUNCTUATION, "");
+      nodes.push(
+        <a
+          key={match.index}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="break-all font-medium text-champagne underline underline-offset-2 hover:text-champagne-dark"
+        >
+          {url}
+        </a>
+      );
+      // La puntuación recortada vuelve como texto: arranca a leerse desde el final de la URL.
+      lastIndex = match.index + url.length;
+      continue;
+    }
     if (linkHref) {
       nodes.push(
         <a
