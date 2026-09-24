@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Fersion Tech — Presentación de servicios</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Manrope:wght@400;500;600;700&display=block" rel="stylesheet">
+<!--
+  Fuente del PDF de venta. Para regenerarlo (Git Bash, desde esta carpeta; Chrome necesita
+  rutas absolutas, y un perfil aparte para no chocar con el Chrome abierto):
+  D=$(pwd -W); "/c/Program Files/Google/Chrome/Application/chrome.exe" --headless --no-pdf-header-footer \
+    --user-data-dir="$TEMP/chrome-pdf" --virtual-time-budget=15000 \
+    --print-to-pdf="$D/Fersion-Tech-Servicios.pdf" "file:///$D/fersion-tech-servicios.html"
+  El contenido entra justo en 3 carillas A4: si se agrega texto, revisar que no se corte el pie.
+  Colores y tipografías: los de www.fersiontech.com.
+-->
+<style>
+  :root {
+    --bg: #faf8f5;
+    --paper: #ffffff;
+    --ink: #2d2926;
+    --ink-soft: #5c5550;
+    --muted: #8a827b;
+    --dark: #1a1715;
+    --bronze: #8b7355;
+    --terracotta: #c2775e;
+    --line: #d4cfc9;
+    --tint: #f1ece5;
+  }
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); }
+  body {
+    font-family: "Manrope", system-ui, sans-serif;
+    color: var(--ink);
+    font-size: 9.6pt;
+    line-height: 1.5;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .page {
+    width: 210mm;
+    height: 297mm;
+    padding: 15mm 16mm 13mm;
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+    display: flex;
+    flex-direction: column;
+  }
+  .page:last-child { page-break-after: auto; }
+  .page > * { flex-shrink: 0; }
+  h1, h2, h3 { font-family: "Fraunces", Georgia, serif; font-weight: 500; letter-spacing: -0.01em; color: var(--ink); }
+  .eyebrow {
+    font-size: 7.4pt; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--bronze);
+  }
+  .rule { height: 1px; background: var(--line); }
+
+  /* ---------- Cabecera ---------- */
+  .top { display: flex; justify-content: space-between; align-items: center; }
+  .top img { height: 8.5mm; }
+  .top .meta { font-size: 7.6pt; color: var(--muted); letter-spacing: 0.06em; text-align: right; }
+
+  /* ---------- Portada ---------- */
+  .hero {
+    margin-top: 8mm;
+    background: var(--dark);
+    color: var(--bg);
+    border-radius: 5mm;
+    padding: 10mm 12mm 10mm;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: ""; position: absolute; right: -40mm; top: -50mm; width: 120mm; height: 120mm; border-radius: 50%;
+    background: radial-gradient(circle, rgba(194,119,94,.38), rgba(194,119,94,0) 65%);
+  }
+  .hero::after {
+    content: ""; position: absolute; left: -30mm; bottom: -70mm; width: 110mm; height: 110mm; border-radius: 50%;
+    background: radial-gradient(circle, rgba(139,115,85,.35), rgba(139,115,85,0) 65%);
+  }
+  .hero > * { position: relative; }
+  .hero .eyebrow { color: #c9ab86; }
+  .hero h1 { color: var(--bg); font-size: 30pt; line-height: 1.06; margin: 3.5mm 0 4mm; max-width: 170mm; }
+  .hero h1 em { font-style: italic; color: #e3a58c; }
+  .hero p { font-size: 11pt; line-height: 1.55; color: rgba(250,248,245,.78); max-width: 140mm; }
+  .hero .pillars { display: flex; gap: 3mm; margin-top: 6mm; flex-wrap: wrap; }
+  .hero .pillars span {
+    border: 1px solid rgba(250,248,245,.22); border-radius: 99px; padding: 1.6mm 4mm;
+    font-size: 8pt; font-weight: 600; letter-spacing: 0.04em; color: rgba(250,248,245,.9);
+  }
+
+  /* ---------- Problema ---------- */
+  .section { margin-top: 7mm; }
+  .section-head { display: flex; align-items: baseline; gap: 5mm; margin-bottom: 4.5mm; }
+  .section-head h2 { font-size: 17pt; line-height: 1.15; }
+  .pains { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3.5mm; }
+  .pain { border-top: 2px solid var(--terracotta); padding-top: 3mm; }
+  .pain b { display: block; font-size: 9.4pt; font-weight: 700; margin-bottom: 1mm; line-height: 1.3; }
+  .pain span { color: var(--ink-soft); font-size: 8.6pt; line-height: 1.45; }
+
+  /* ---------- Servicios ---------- */
+  .services { display: grid; grid-template-columns: repeat(2, 1fr); gap: 3.5mm; }
+  .service {
+    background: var(--paper); border: 1px solid var(--line); border-radius: 3.5mm; padding: 4mm 5mm;
+    display: flex; gap: 4mm;
+  }
+  .service.wide { grid-column: span 2; background: var(--tint); border-color: #e2d8cc; }
+  .service .num { font-family: "Fraunces", serif; font-size: 15pt; color: var(--bronze); line-height: 1; min-width: 7mm; }
+  .service h3 { font-size: 11.6pt; margin-bottom: 1.2mm; line-height: 1.2; }
+  .service p { color: var(--ink-soft); font-size: 8.8pt; line-height: 1.5; }
+  .tag {
+    display: inline-block; font-family: "Manrope", sans-serif; font-size: 6.6pt; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--terracotta); border: 1px solid var(--terracotta); border-radius: 99px;
+    padding: 0.4mm 2.2mm; margin-left: 2mm; vertical-align: 2px;
+  }
+
+  .foot {
+    margin-top: auto; padding-top: 4mm; border-top: 1px solid var(--line);
+    display: flex; justify-content: space-between; font-size: 7.4pt; color: var(--muted); letter-spacing: 0.03em;
+  }
+
+  /* ---------- Página 2: asistente ---------- */
+  .ai { display: grid; grid-template-columns: 1fr 72mm; gap: 8mm; margin-top: 8mm; align-items: start; }
+  .ai h2 { font-size: 21pt; line-height: 1.1; margin: 2.5mm 0 3mm; }
+  .ai .lead { color: var(--ink-soft); font-size: 9.8pt; margin-bottom: 4.5mm; }
+  .checks { list-style: none; display: grid; gap: 2.4mm; }
+  .checks li { display: flex; gap: 3mm; font-size: 9pt; line-height: 1.45; }
+  .checks li::before {
+    content: ""; flex: 0 0 4.2mm; height: 4.2mm; margin-top: 0.5mm; border-radius: 50%;
+    background: var(--terracotta) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.5l2.5 2.5L12 5.5' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/80% no-repeat;
+  }
+  .checks b { font-weight: 700; }
+
+  .phone {
+    background: #0b0b10; border-radius: 6mm; padding: 3mm; box-shadow: 0 4mm 10mm rgba(26,23,21,.18);
+  }
+  .phone .screen { background: #111118; border-radius: 4mm; overflow: hidden; }
+  .phone .bar {
+    display: flex; align-items: center; gap: 2.2mm; padding: 3mm 3.5mm; border-bottom: 1px solid rgba(255,255,255,.07);
+  }
+  .phone .avatar { width: 6.5mm; height: 6.5mm; border-radius: 50%; background: rgba(212,175,55,.18); border: 1px solid rgba(212,175,55,.5); }
+  .phone .bar b { display: block; color: #f5f0e8; font-size: 7.6pt; }
+  .phone .bar small { color: #7fd49b; font-size: 6.4pt; }
+  .phone .msgs { padding: 3.5mm 3mm 4mm; display: grid; gap: 2.4mm; }
+  .bubble { font-size: 7.1pt; line-height: 1.45; padding: 2.2mm 2.8mm; border-radius: 3mm; max-width: 88%; }
+  .bubble.user { justify-self: end; background: #d4af37; color: #0a0a0f; border-bottom-right-radius: 1mm; }
+  .bubble.bot { background: #1c1c26; color: #ece6dc; border: 1px solid rgba(255,255,255,.06); border-bottom-left-radius: 1mm; }
+  .bubble.bot a { color: #e8cc6e; text-decoration: underline; }
+  .phone-caption { font-size: 7.2pt; color: var(--muted); text-align: center; margin-top: 2.5mm; line-height: 1.4; }
+
+  /* ---------- Planes ---------- */
+  .plans { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+  .plan { border: 1px solid var(--line); border-radius: 3.5mm; padding: 5mm 5.5mm; background: var(--paper); }
+  .plan.featured { background: var(--dark); border-color: var(--dark); color: var(--bg); }
+  .plan .name { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1mm; }
+  .plan h3 { font-size: 15pt; }
+  .plan.featured h3 { color: var(--bg); }
+  .plan .badge { font-size: 6.6pt; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #e3a58c; }
+  .plan .for { font-size: 8.4pt; color: var(--muted); margin-bottom: 3mm; }
+  .plan.featured .for { color: rgba(250,248,245,.6); }
+  .plan ul { list-style: none; display: grid; gap: 1.3mm; }
+  .plan li { font-size: 8.6pt; padding-left: 4mm; position: relative; }
+  .plan li::before { content: ""; position: absolute; left: 0; top: 2.1mm; width: 1.6mm; height: 1.6mm; border-radius: 50%; background: var(--bronze); }
+  .plan.featured li::before { background: var(--terracotta); }
+  .plans-note { margin-top: 3mm; font-size: 8.4pt; color: var(--ink-soft); }
+  .plans-note b { color: var(--ink); }
+
+  /* ---------- Cómo trabajamos ---------- */
+  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3.5mm; }
+  .step .n { font-family: "Fraunces", serif; font-size: 20pt; color: var(--line); line-height: 1; margin-bottom: 1.5mm; }
+  .step b { display: block; font-size: 9.2pt; margin-bottom: 0.8mm; }
+  .step span { font-size: 8.2pt; color: var(--ink-soft); line-height: 1.45; display: block; }
+
+  /* ---------- Cierre ---------- */
+  .close {
+    margin-top: 7mm; background: var(--tint); border-radius: 4mm; padding: 5.5mm 6mm;
+    display: grid; grid-template-columns: 27mm 1fr auto; gap: 6mm; align-items: center;
+  }
+  .close img.qr { width: 27mm; height: 27mm; display: block; }
+  .close h3 { font-size: 13.5pt; margin-bottom: 1mm; }
+  .close p { font-size: 8.6pt; color: var(--ink-soft); }
+  .close p b { color: var(--ink); }
+  .contact { font-size: 8.4pt; line-height: 1.75; text-align: right; border-left: 1px solid #ddd2c4; padding-left: 6mm; }
+  .contact b { display: block; font-size: 6.8pt; letter-spacing: 0.14em; text-transform: uppercase; color: var(--bronze); margin-bottom: 0.5mm; }
+  .faq { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm 7mm; }
+  .faq b { display: block; font-family: "Fraunces", serif; font-weight: 500; font-size: 11pt; margin-bottom: 1.2mm; }
+  .faq span { font-size: 8.8pt; color: var(--ink-soft); line-height: 1.5; display: block; }
+  .team { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+  .person { border: 1px solid var(--line); border-radius: 3.5mm; padding: 5mm; background: var(--paper); }
+  .person b { display: block; font-family: "Fraunces", serif; font-weight: 500; font-size: 12pt; }
+  .person small { display: block; font-size: 7.2pt; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--bronze); margin: 0.8mm 0 2mm; }
+  .person span { font-size: 8.8pt; color: var(--ink-soft); }
+  .zones { margin-top: 4mm; font-size: 8.6pt; color: var(--ink-soft); }
+  .zones b { color: var(--ink); }
+  .about { font-size: 8.2pt; color: var(--ink-soft); margin-top: 4mm; line-height: 1.5; }
+  .about b { color: var(--ink); }
+</style>
+</head>
+<body>
+
+<!-- ================= PÁGINA 1 ================= -->
+<section class="page">
+  <div class="top">
+    <img src="logo-ink.png" alt="Fersion Tech">
+    <div class="meta">PRESENTACIÓN DE SERVICIOS<br>www.fersiontech.com</div>
+  </div>
+
+  <div class="hero">
+    <div class="eyebrow">Tecnología para inmobiliarias</div>
+    <h1>Que ninguna consulta <em>se pierda.</em></h1>
+    <p>Web a medida, contenido visual profesional y un asistente con inteligencia artificial que atiende a tus clientes las 24 horas y les deja la visita agendada. Un sistema completo, no una lista de servicios sueltos.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <span class="eyebrow">El problema</span>
+      <h2>Lo que hoy se pierde entre una consulta y una visita</h2>
+    </div>
+    <div class="pains">
+      <div class="pain"><b>Fuera de horario</b><span>De noche o un domingo se responden tarde, y el interesado ya le escribió a otra.</span></div>
+      <div class="pain"><b>Preguntas repetidas</b><span>"¿Sigue disponible?", "¿tiene cochera?": horas contestando lo mismo.</span></div>
+      <div class="pain"><b>Visitas que no califican</b><span>Gente de otra zona o presupuesto que llega a la visita sin filtrar.</span></div>
+      <div class="pain"><b>Turnos a mano</b><span>Coordinar visitas por mensaje, con turnos que se pisan o se olvidan.</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <span class="eyebrow">Qué hacemos</span>
+      <h2>Un solo sistema, de la foto a la visita</h2>
+    </div>
+    <div class="services">
+      <div class="service wide">
+        <div class="num">01</div>
+        <div>
+          <h3>Asistente con inteligencia artificial <span class="tag">WhatsApp y web</span></h3>
+          <p>Atiende las 24 horas, los 365 días del año. Responde al instante con tus propiedades reales, filtra a los interesados por zona, presupuesto y tipo de propiedad, manda el link a la ficha con fotos y agenda la visita cruzando la disponibilidad real de tu equipo. Cuando el tema es precio, legal o el cliente pide hablar con una persona, deriva y te avisa.</p>
+        </div>
+      </div>
+      <div class="service">
+        <div class="num">02</div>
+        <div>
+          <h3>Sitio web a medida</h3>
+          <p>Diseñado para tu marca, con catálogo de propiedades y filtros, optimizado para buscadores (SEO), en español e inglés. Hosting, soporte y actualización permanente incluidos.</p>
+        </div>
+      </div>
+      <div class="service">
+        <div class="num">03</div>
+        <div>
+          <h3>Contenido multimedia integral</h3>
+          <p>Fotografía e iluminación profesional, recorridos virtuales en 360° que se ven desde cualquier dispositivo, y video con drone en 4K. Editado y listo para la web y las redes.</p>
+        </div>
+      </div>
+      <div class="service">
+        <div class="num">04</div>
+        <div>
+          <h3>Automatización y CRM</h3>
+          <p>Un panel con todas las consultas (web, turnos y asistente) y su estado, agenda de visitas sincronizada con Google Calendar, y avisos por WhatsApp cuando entra un cliente nuevo.</p>
+        </div>
+      </div>
+      <div class="service">
+        <div class="num">05</div>
+        <div>
+          <h3>Marketing digital inmobiliario</h3>
+          <p>Gestión de campañas en Google Ads y Meta Ads (Facebook e Instagram), con estrategia pensada para el sector inmobiliario.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>Fersion Tech — Software, contenido y gestión integral para inmobiliarias</span>
+    <span>1 / 3</span>
+  </div>
+</section>
+
+<!-- ================= PÁGINA 2 ================= -->
+<section class="page">
+  <div class="top">
+    <img src="logo-ink.png" alt="Fersion Tech">
+    <div class="meta">PRESENTACIÓN DE SERVICIOS<br>www.fersiontech.com</div>
+  </div>
+
+  <div class="ai">
+    <div>
+      <span class="eyebrow">El asistente, en detalle</span>
+      <h2>Tu mejor vendedor, atendiendo a las 3 de la mañana</h2>
+      <p class="lead">No es un chatbot de respuestas armadas: consulta tu catálogo y tu agenda en el momento, y conversa como lo haría alguien de tu equipo.</p>
+      <ul class="checks">
+        <li><span><b>Responde al instante</b> por WhatsApp y desde el chat de tu web, a cualquier hora.</span></li>
+        <li><span><b>Solo usa datos reales:</b> si no hay una propiedad que coincida, lo dice y ofrece alternativas. No inventa.</span></li>
+        <li><span><b>Califica como un vendedor:</b> pregunta zona, presupuesto y tipo de propiedad antes de mandar opciones.</span></li>
+        <li><span><b>Agenda la visita</b> en un horario libre de verdad, y pide los datos de contacto antes de confirmarla.</span></li>
+        <li><span><b>Sabe cuándo pasarte la posta:</b> negociación de precio, temas legales o impositivos, o si el cliente quiere hablar con una persona.</span></li>
+        <li><span><b>Todo queda registrado</b> en tu panel: quién consultó, por qué propiedad y cuándo es la visita.</span></li>
+      </ul>
+    </div>
+    <div>
+      <div class="phone">
+        <div class="screen">
+          <div class="bar">
+            <div class="avatar"></div>
+            <div><b>Asistente virtual</b><small>● Te respondo al instante</small></div>
+          </div>
+          <div class="msgs">
+            <div class="bubble bot">¡Hola! Soy el asistente de FS Inmobiliaria. Puedo buscarte propiedades del catálogo, contarte los detalles de cada una y coordinar una visita. ¿Qué estás buscando?</div>
+            <div class="bubble user">Hola, busco un departamento en palermo. Me pasás el link para ver las fotos?</div>
+            <div class="bubble bot">¡Hola! En Palermo tenemos disponible este departamento en venta:<br><br><b>Departamento de 3 ambientes</b> en venta, con 2 baños, 145 m², 1 cochera, gimnasio, terraza, coworking, cocina con isla, lavandería, balcón y seguridad 24 hs. El valor es de <b>USD 450.000</b>.<br><br>Podés ver las fotos en nuestra web: <a>demo.fersiontech.com/<wbr>es/<wbr>propiedades/<wbr>departamento-premium-torre-excellence</a><br><br>¿Te gustaría coordinar una visita para conocerlo?</div>
+          </div>
+        </div>
+      </div>
+      <div class="phone-caption">Conversación real con el asistente de nuestra inmobiliaria de demostración.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <span class="eyebrow">Planes</span>
+      <h2>Dos formas de empezar</h2>
+    </div>
+    <div class="plans">
+      <div class="plan">
+        <div class="name"><h3>Esencial</h3></div>
+        <div class="for">Para tener una web propia que trabaje para vos.</div>
+        <ul>
+          <li>Sitio web a medida</li>
+          <li>Hosting incluido</li>
+          <li>Optimización SEO</li>
+          <li>Soporte y actualización permanente</li>
+          <li>Español e inglés</li>
+        </ul>
+      </div>
+      <div class="plan featured">
+        <div class="name"><h3>Profesional</h3><span class="badge">El más elegido</span></div>
+        <div class="for">Para que ninguna consulta quede sin respuesta.</div>
+        <ul>
+          <li>Todo lo del plan Esencial</li>
+          <li>Asistente con IA en WhatsApp y en la web</li>
+          <li>Agenda automática de visitas</li>
+          <li>Tour virtual 360°</li>
+          <li>Automatización y CRM</li>
+          <li>Soporte prioritario y gestión de contenido mensual</li>
+        </ul>
+      </div>
+    </div>
+    <p class="plans-note"><b>El precio se arma a medida</b> de cada inmobiliaria: cantidad de propiedades, producción de contenido y servicios que sumes. Fotografía, drone y marketing digital también se contratan por separado.</p>
+  </div>
+
+  <div class="foot">
+    <span>Fersion Tech — Software, contenido y gestión integral para inmobiliarias</span>
+    <span>2 / 3</span>
+  </div>
+</section>
+
+<!-- ================= PÁGINA 3 ================= -->
+<section class="page">
+  <div class="top">
+    <img src="logo-ink.png" alt="Fersion Tech">
+    <div class="meta">PRESENTACIÓN DE SERVICIOS<br>www.fersiontech.com</div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <span class="eyebrow">Cómo trabajamos</span>
+      <h2>Vos validás, nosotros lo implementamos</h2>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><b>Diagnóstico</b><span>Una reunión para entender cómo te llegan hoy las consultas y qué querés resolver.</span></div>
+      <div class="step"><div class="n">2</div><b>Propuesta</b><span>Te armamos una propuesta con precio para tu caso, con el plan que te conviene.</span></div>
+      <div class="step"><div class="n">3</div><b>Implementación</b><span>Cargamos tus propiedades, producimos el contenido y configuramos el asistente con tus zonas y horarios. Gestionamos la conexión de tu WhatsApp Business con Meta.</span></div>
+      <div class="step"><div class="n">4</div><b>Lanzamiento</b><span>Lo probamos juntos con tus propiedades reales antes de salir, y seguimos con soporte.</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <span class="eyebrow">Preguntas frecuentes</span>
+      <h2>Lo que nos suelen preguntar</h2>
+    </div>
+    <div class="faq">
+      <div><b>¿Reemplaza a mi equipo?</b><span>No. Responde al instante, filtra y agenda. Cuando el cliente pide una persona, o el tema es precio o legal, deriva y te avisa. Tu equipo habla con quien ya calificó.</span></div>
+      <div><b>¿Y si le dice algo mal a un cliente?</b><span>Responde solo con los datos de las propiedades que tenés cargadas y deriva lo que no le corresponde. Antes de lanzarlo lo probamos juntos con tus propiedades reales, y cada consulta queda en tu panel.</span></div>
+      <div><b>¿Funciona con mi número de WhatsApp?</b><span>Sí: se conecta un número de WhatsApp Business oficial a través de Meta, y el trámite lo gestionamos nosotros. La verificación de Meta lleva unos días. Conviene un número dedicado, porque el que se conecta deja de usarse en la app común de WhatsApp.</span></div>
+      <div><b>Ya tengo web, ¿tengo que cambiarla?</b><span>No necesariamente. El asistente de WhatsApp trabaja sobre tu catálogo cargado en nuestro sistema, así que se puede sumar sin tocar tu web actual. Si querés una web nueva, la hacemos a medida.</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <span class="eyebrow">Quiénes somos</span>
+      <h2>Tecnología y contenido, bajo un mismo techo</h2>
+    </div>
+    <div class="team">
+      <div class="person"><b>Federico Ojeda</b><small>Desarrollo de software e IA</small><span>Formado en la UTN, con más de 4 años trabajando de forma remota con empresas y agentes inmobiliarios de Estados Unidos.</span></div>
+      <div class="person"><b>Sergio Alvarenga</b><small>Fotografía y filmmaking</small><span>Fotógrafo y filmmaker profesional: fotografía, recorridos 360° y video con drone. Producción en CABA, Zona Norte, Zona Oeste, Zona Sur y La Plata.</span></div>
+    </div>
+  </div>
+
+  <div class="close">
+    <img class="qr" src="qr-demo.png" alt="QR a demo.fersiontech.com">
+    <div>
+      <h3>Probalo ahora, como si fueras un cliente</h3>
+      <p>Escaneá el código o entrá a <b>demo.fersiontech.com</b> y tocá <b>"Probá nuestro asistente con IA"</b>. Pedile una propiedad, preguntale lo que quieras o pedí una visita.</p>
+    </div>
+    <div class="contact">
+      <b>Hablemos</b>
+      WhatsApp +54 9 11 5956-8286<br>
+      fersiontech@gmail.com<br>
+      www.fersiontech.com<br>
+      @fersiontech
+    </div>
+  </div>
+
+  <div class="foot" style="margin-top: 5mm;">
+    <span>Fersion Tech — Software, contenido y gestión integral para inmobiliarias</span>
+    <span>3 / 3</span>
+  </div>
+</section>
+
+</body>
+</html>
