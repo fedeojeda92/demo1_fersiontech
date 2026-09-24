@@ -69,7 +69,7 @@ Pedirle que abra `demo.fersiontech.com` en su teléfono y toque "Probá nuestro 
    - Remarcar: "fijate que no le tira toda la información de golpe, califica como lo haría un vendedor".
 2. **"En Palermo, hasta 500 mil dólares"** → responde con la propiedad real del catálogo (el depto de Torre Excellence, USD 450.000) y sus características reales.
    - "No inventa: si no hay nada que coincida, lo dice y ofrece alternativas."
-3. **"Pasame las fotos"** → manda el link real a la propiedad con fotos y tour (en el chat web se toca y abre la ficha).
+3. **"Pasame las fotos"** → manda el link real a la ficha con las fotos (en el chat web se toca y abre). El tour 360° lo tiene solo la de Las Cañitas (la de 4.1); si pregunta por tour de esta, el agente no lo va a prometer.
 4. **"¿Puedo verlo el [día hábil próximo] a las [hora]?"** → consulta la agenda real y confirma, o si está ocupado propone otros horarios.
    - En el chat web, **antes de confirmar le pide nombre y teléfono o email** — que los ponga. "No agenda a nadie anónimo: a la visita llega alguien con quien ya tenés contacto."
    - Mostrar en otra pestaña el **panel**: la consulta en Leads (origen "Chat web" o "WhatsApp") y el turno en Agenda. Por WhatsApp, además, el evento recién creado en **Google Calendar**.
