@@ -7,19 +7,6 @@ import AnimatedSection, { StaggerContainer, StaggerItem } from "./AnimatedSectio
 import { MapPin, Phone, Mail, Clock, ArrowUp } from "lucide-react";
 import { useState } from "react";
 
-function InstagramIcon({ size = 18 }: { size?: number }) {
-  return (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>);
-}
-function FacebookIcon({ size = 18 }: { size?: number }) {
-  return (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>);
-}
-function LinkedinIcon({ size = 18 }: { size?: number }) {
-  return (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" /><rect width="4" height="12" x="2" y="9" /><circle cx="4" cy="4" r="2" /></svg>);
-}
-function YoutubeIcon({ size = 18 }: { size?: number }) {
-  return (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" /><path d="m10 15 5-3-5-3z" /></svg>);
-}
-
 export default function Footer() {
   const t = useTranslations("footer");
   const tCommon = useTranslations("common");
@@ -27,12 +14,6 @@ export default function Footer() {
   const tContact = useTranslations("contact");
   const [email, setEmail] = useState("");
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
-  const socialLinks = [
-    { icon: InstagramIcon, href: "#", label: "Instagram" },
-    { icon: FacebookIcon, href: "#", label: "Facebook" },
-    { icon: LinkedinIcon, href: "#", label: "LinkedIn" },
-    { icon: YoutubeIcon, href: "#", label: "YouTube" },
-  ];
 
   return (
     <footer className="bg-obsidian relative overflow-hidden">
@@ -79,15 +60,7 @@ export default function Footer() {
                   <p className="text-[9px] uppercase tracking-[0.4em] text-champagne/60">{tCommon("brand_suffix")}</p>
                 </div>
               </div>
-              <p className="text-ivory/40 text-sm leading-relaxed mb-6">{t("description")}</p>
-              <div className="flex gap-3">
-                {socialLinks.map((social) => (
-                  <a key={social.label} href={social.href} aria-label={social.label}
-                    className="w-10 h-10 rounded-lg bg-ivory/5 flex items-center justify-center text-ivory/40 hover:bg-champagne/10 hover:text-champagne transition-all duration-300 border border-ivory/5 hover:border-champagne/20">
-                    <social.icon size={16} />
-                  </a>
-                ))}
-              </div>
+              <p className="text-ivory/40 text-sm leading-relaxed">{t("description")}</p>
             </div>
           </StaggerItem>
 
@@ -160,7 +133,6 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-ivory/20 text-xs tracking-wider">{t("copyright")}</p>
           <div className="flex items-center gap-6">
-            <Link href="#" className="text-ivory/20 text-xs hover:text-champagne transition-colors">{t("terms")}</Link>
             <Link href="/politica-privacidad" className="text-ivory/20 text-xs hover:text-champagne transition-colors">{t("privacy")}</Link>
           </div>
         </div>

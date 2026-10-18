@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     template: "%s | FS Inmobiliaria",
   },
   description:
-    "Propiedades exclusivas de lujo. Tour virtuales 360, fotografía HDR y video 4K. Encontrá tu propiedad ideal con FS Inmobiliaria.",
+    "Propiedades exclusivas de lujo. Tours virtuales 360, fotografía HDR y video 4K. Encontrá tu propiedad ideal con FS Inmobiliaria.",
   keywords: [
     "inmobiliaria",
     "propiedades de lujo",

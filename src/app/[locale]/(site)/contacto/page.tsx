@@ -64,19 +64,6 @@ export default function ContactPage() {
                     </div>
                   </motion.div>
                 ))}
-
-                {/* Social */}
-                <div className="glass-card rounded-2xl p-6">
-                  <p className="text-ivory font-medium mb-4">{t("follow_us")}</p>
-                  <div className="flex flex-wrap gap-3">
-                    {["Instagram", "Facebook", "LinkedIn", "YouTube"].map((social) => (
-                      <a key={social} href="#"
-                        className="px-4 py-2 bg-ivory/5 text-ivory/60 text-sm rounded-lg hover:bg-champagne/10 hover:text-champagne transition-all border border-ivory/10">
-                        {social}
-                      </a>
-                    ))}
-                  </div>
-                </div>
               </div>
             </AnimatedSection>
 
