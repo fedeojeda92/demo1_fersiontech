@@ -11,7 +11,7 @@ export default function WhatsAppButton() {
 
   return (
     <motion.a
-      href={whatsappChatUrl(t("default_message"))}
+      href={whatsappChatUrl()}
       target="_blank"
       rel="noopener noreferrer"
       aria-label={t("aria_label")}

@@ -305,8 +305,7 @@
   },
   "whatsapp": {
     "aria_label": "Chat on WhatsApp",
-    "tooltip": "Questions? Message us on WhatsApp",
-    "default_message": "Hola, quiero hacer una consulta sobre propiedades."
+    "tooltip": "Want this agent for your agency? Message us"
   },
   "chat": {
     "aria_label": "Chat with the assistant",

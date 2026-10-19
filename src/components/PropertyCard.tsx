@@ -166,7 +166,7 @@ export default function PropertyCard({ property, index = 0 }: PropertyCardProps)
             <p className="font-heading text-2xl text-ivory">{formatPrice(property.price, property.currency)}</p>
           </div>
           <a
-            href={whatsappChatUrl(`Me interesa la propiedad: ${title}`)}
+            href={whatsappChatUrl()}
             target="_blank"
             rel="noopener noreferrer"
             className="px-4 py-2.5 bg-emerald/20 text-emerald text-xs font-semibold rounded-lg hover:bg-emerald/30 transition-colors flex items-center gap-2 border border-emerald/20"

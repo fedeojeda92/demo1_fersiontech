@@ -305,8 +305,7 @@
   },
   "whatsapp": {
     "aria_label": "Chatear por WhatsApp",
-    "tooltip": "¿Consultas? Escribinos por WhatsApp",
-    "default_message": "Hola, quiero hacer una consulta sobre propiedades."
+    "tooltip": "¿Querés este agente en tu inmobiliaria? Escribinos"
   },
   "chat": {
     "aria_label": "Chatear con el asistente",

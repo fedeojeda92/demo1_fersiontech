@@ -324,7 +324,7 @@ export default function PropertyDetailClient({
                         {t("contact_agent")}
                       </a>
                       <a
-                        href={whatsappChatUrl(`Me interesa la propiedad: ${title}`)}
+                        href={whatsappChatUrl()}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-emerald-600 text-white font-medium rounded-xl hover:bg-emerald-700 transition-all"
@@ -363,7 +363,7 @@ export default function PropertyDetailClient({
                         {t("call")}
                       </a>
                       <a
-                        href={whatsappChatUrl(`Me interesa la propiedad: ${title}`)}
+                        href={whatsappChatUrl()}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors"
