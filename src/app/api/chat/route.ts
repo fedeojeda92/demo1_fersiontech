@@ -14,7 +14,9 @@ import { generateAgentReply } from "@/lib/agent/respond";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 30;
+// Guardar el contacto y agendar encadena varias llamadas a Gemini en un mismo turno: el
+// 2026-10-21 eso pasó los 30 s y Vercel cortó con 504. 60 s es el tope del plan Hobby.
+export const maxDuration = 60;
 
 const SESSION_COOKIE = "demo_chat_session";
 const MAX_MESSAGE_LENGTH = 1000;
