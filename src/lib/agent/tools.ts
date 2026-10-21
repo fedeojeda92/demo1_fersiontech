@@ -90,7 +90,7 @@ export const AGENT_TOOLS: FunctionDeclaration[] = [
   {
     name: "save_contact",
     description:
-      "Guarda el nombre y el contacto (teléfono o email) del interesado en su ficha. Usar SOLO en el chat de la web, apenas el interesado los dé — en WhatsApp el teléfono ya se conoce y no hace falta. Pedirlos antes de agendar una visita: sin un contacto no se lo puede confirmar.",
+      "Guarda el nombre y el contacto (teléfono o email) del interesado en su ficha. Usar SOLO en el chat de la web, apenas el interesado los dé — en WhatsApp el teléfono ya se conoce y no hace falta. Pedirlos antes de agendar una visita: sin un contacto, el equipo no tiene cómo comunicarse con él.",
     parametersJsonSchema: {
       type: "object",
       properties: {

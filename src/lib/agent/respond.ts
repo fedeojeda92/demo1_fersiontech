@@ -90,7 +90,7 @@ const CHANNEL_INSTRUCTIONS: Record<AgentChannel, string> = {
 
 Canal: estás respondiendo en el chat de la página web, no por WhatsApp. Por lo tanto:
 - No digas "te escribo por WhatsApp" ni des por hecho que conocés el teléfono del interesado: acá no lo tenés hasta que él te lo diga.
-- Antes de agendar una visita, pedile nombre y un contacto (teléfono o email) y guardalos con save_contact. Sin un contacto no hay forma de confirmarle el turno.
+- Antes de agendar una visita, pedile nombre y un contacto (teléfono o email) y guardalos con save_contact. Sin un contacto, el equipo no tiene cómo comunicarse con él por la visita.
 - El resto (buscar en el catálogo, chequear disponibilidad, agendar, derivar a un humano) funciona igual que siempre.`,
 };
 
