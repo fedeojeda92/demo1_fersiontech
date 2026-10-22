@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import { LEAD_STATUS_LABELS, type LeadStatus } from "@/lib/leads";
 import { Clock, Phone, Mail, Home, X, Trash2 } from "lucide-react";
 import TurnosCalendar, { type TurnoEventInput } from "./TurnosCalendar";
 import { cancelAppointmentAction } from "@/lib/actions/leads";
@@ -103,7 +104,7 @@ export default function AgendaBoard({
                     )}
                   </button>
                   <span className="text-xs px-2.5 py-1 rounded-full bg-champagne/10 text-champagne">
-                    {turno.status}
+                    {LEAD_STATUS_LABELS[turno.status as LeadStatus] ?? turno.status}
                   </span>
                   <button
                     type="button"
@@ -159,7 +160,7 @@ export default function AgendaBoard({
               </div>
               <div className="pt-2 flex items-center justify-between">
                 <span className="text-xs px-2.5 py-1 rounded-full bg-champagne/10 text-champagne">
-                  {selectedTurno.status}
+                  {LEAD_STATUS_LABELS[selectedTurno.status as LeadStatus] ?? selectedTurno.status}
                 </span>
                 <button
                   type="button"

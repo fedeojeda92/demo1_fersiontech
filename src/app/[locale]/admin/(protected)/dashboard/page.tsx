@@ -1,17 +1,24 @@
 import { createClient } from "@/lib/supabase/server";
 import { getTenantId } from "@/lib/tenant";
 import { Link } from "@/i18n/navigation";
-import { Building2, Users, Eye, Plus } from "lucide-react";
+import { Building2, Users, Eye, Plus, Flame } from "lucide-react";
+import { LEAD_SOURCE_LABELS, LEAD_STATUS_LABELS, type LeadStatus } from "@/lib/leads";
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient();
   const tenantId = await getTenantId();
 
-  const [{ count: propertiesCount }, { count: leadsCount }, { count: viewsCount }, { data: recentLeads }] =
+  const [{ count: propertiesCount }, { count: leadsCount }, { count: viewsCount }, { count: hotCount }, { data: recentLeads }] =
     await Promise.all([
       supabase.from("properties").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId),
       supabase.from("leads").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId),
       supabase.from("property_views").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId),
+      supabase
+        .from("leads")
+        .select("id", { count: "exact", head: true })
+        .eq("tenant_id", tenantId)
+        .eq("temperature", "caliente")
+        .in("status", ["nuevo", "calificado", "visita", "negociacion"]),
       supabase
         .from("leads")
         .select("id, name, source, status, created_at")
@@ -23,6 +30,7 @@ export default async function AdminDashboardPage() {
   const stats = [
     { label: "Propiedades", value: propertiesCount ?? 0, icon: Building2 },
     { label: "Leads totales", value: leadsCount ?? 0, icon: Users },
+    { label: "Leads calientes activos", value: hotCount ?? 0, icon: Flame },
     { label: "Vistas totales", value: viewsCount ?? 0, icon: Eye },
   ];
 
@@ -39,7 +47,7 @@ export default async function AdminDashboardPage() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
         {stats.map((stat) => (
           <div key={stat.label} className="glass-card rounded-2xl p-6">
             <stat.icon size={22} className="text-champagne mb-3" />
@@ -56,12 +64,16 @@ export default async function AdminDashboardPage() {
             {recentLeads.map((lead) => (
               <div key={lead.id} className="flex items-center justify-between py-2 border-b border-ivory/5 last:border-0">
                 <div>
-                  <p className="text-ivory text-sm">{lead.name}</p>
+                  <Link href={`/admin/leads/${lead.id}`} className="text-ivory text-sm hover:text-champagne">
+                    {lead.name}
+                  </Link>
                   <p className="text-ivory/40 text-xs">
-                    {lead.source === "turno" ? "Turno" : "Contacto"} · {new Date(lead.created_at).toLocaleDateString("es-AR")}
+                    {LEAD_SOURCE_LABELS[lead.source] ?? lead.source} · {new Date(lead.created_at).toLocaleDateString("es-AR")}
                   </p>
                 </div>
-                <span className="text-xs px-2.5 py-1 rounded-full bg-champagne/10 text-champagne">{lead.status}</span>
+                <span className="text-xs px-2.5 py-1 rounded-full bg-champagne/10 text-champagne">
+                  {LEAD_STATUS_LABELS[lead.status as LeadStatus] ?? lead.status}
+                </span>
               </div>
             ))}
           </div>

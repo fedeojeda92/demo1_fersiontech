@@ -253,3 +253,56 @@ end $$;
 --   for insert with check (bucket_id = 'property-images' and auth.role() = 'authenticated');
 -- create policy "public can read property images" on storage.objects
 --   for select using (bucket_id = 'property-images');
+
+-- ============================================================================
+-- Lead calificado (2026-10-22): el agente guarda lo que averigua del cliente y el panel
+-- muestra la ficha completa y el embudo. Correr este bloque solo, en el SQL Editor.
+-- Se puede volver a correr sin romper nada.
+-- ============================================================================
+
+alter table leads add column if not exists qualification jsonb not null default '{}'::jsonb;
+alter table leads add column if not exists temperature text;
+-- En el chat web `phone` arranca siendo el id de sesión y save_contact lo pisa con el
+-- teléfono real: session_id lo conserva para encontrar la conversación (whatsapp_messages).
+alter table leads add column if not exists session_id text;
+alter table leads add column if not exists updated_at timestamptz;
+
+update leads set session_id = phone
+where source = 'web_demo' and session_id is null and phone like 'web-%';
+
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'leads_temperature_check') then
+    alter table leads add constraint leads_temperature_check
+      check (temperature is null or temperature in ('caliente', 'tibio', 'frio'));
+  end if;
+end $$;
+
+-- Etapas del embudo: nuevo, calificado, visita, negociacion, cerrado, perdido.
+-- Mismo patrón que el de source: busca el nombre real del check sobre `status`.
+do $$
+declare
+  constraint_name text;
+begin
+  select con.conname into constraint_name
+  from pg_constraint con
+  join pg_class rel on rel.oid = con.conrelid
+  where rel.relname = 'leads'
+    and con.contype = 'c'
+    and pg_get_constraintdef(con.oid) ilike '%status%';
+
+  if constraint_name is not null then
+    execute format('alter table leads drop constraint %I', constraint_name);
+  end if;
+
+  update leads set status = 'calificado' where status = 'contactado';
+
+  alter table leads add constraint leads_status_check
+    check (status in ('nuevo', 'calificado', 'visita', 'negociacion', 'cerrado', 'perdido'));
+end $$;
+
+-- Los leads que ya tienen una visita agendada pasan a esa etapa.
+update leads set status = 'visita'
+where appointment_date is not null and status in ('nuevo', 'calificado');
+
+create index if not exists leads_session_idx on leads(tenant_id, session_id);

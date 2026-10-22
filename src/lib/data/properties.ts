@@ -135,7 +135,8 @@ async function queryProperties(
   if (filters.operation) query = query.eq("operation", filters.operation);
   if (filters.type) query = query.eq("type", filters.type);
   if (filters.zone) query = query.eq("zone", await resolveZone(supabase, tenantId, filters.zone));
-  if (filters.minRooms) query = query.gte("bedrooms", filters.minRooms);
+  // minRooms son ambientes (como se dice en Argentina): dormitorios + el living.
+  if (filters.minRooms) query = query.gte("bedrooms", filters.minRooms - 1);
   if (filters.minPrice) query = query.gte("price", filters.minPrice);
   if (filters.maxPrice) query = query.lte("price", filters.maxPrice);
   if (filters.query) {

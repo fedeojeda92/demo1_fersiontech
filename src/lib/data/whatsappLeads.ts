@@ -1,5 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { QUALIFICATION_FIELDS, type LeadQualification, type LeadTemperature } from "@/lib/leads";
 
 /**
  * Encuentra o crea el lead asociado a una conversación de WhatsApp, para que aparezca
@@ -38,6 +39,10 @@ export async function upsertWhatsappLead(
       name: displayName || (source === "web_demo" ? "Visitante del chat web" : "Contacto WhatsApp"),
       phone,
       email: null,
+      // En el chat web `phone` es el id de sesión hasta que el visitante dé un teléfono real
+      // (save_contact lo pisa). session_id lo conserva: es la clave de su conversación en
+      // whatsapp_messages, y la que permite volver a encontrar la ficha en el turno siguiente.
+      session_id: source === "web_demo" ? phone : null,
     })
     .select("id")
     .single();
@@ -78,13 +83,11 @@ export async function findLeadIdByPhone(
   phone: string,
   source: "whatsapp" | "web_demo"
 ): Promise<string | null> {
-  const { data, error } = await supabase
-    .from("leads")
-    .select("id")
-    .eq("tenant_id", tenantId)
-    .eq("phone", phone)
-    .eq("source", source)
-    .maybeSingle();
+  let query = supabase.from("leads").select("id").eq("tenant_id", tenantId).eq("source", source);
+  // En la web, después de save_contact `phone` ya no es el id de sesión: se busca también
+  // por session_id, si no el turno siguiente crearía una ficha nueva para la misma charla.
+  query = source === "web_demo" ? query.or(`phone.eq.${phone},session_id.eq.${phone}`) : query.eq("phone", phone);
+  const { data, error } = await query.limit(1).maybeSingle();
 
   if (error) {
     console.error("findLeadIdByPhone:", error.message);
@@ -148,7 +151,7 @@ export async function mergeDuplicateWebLeads(
 
   const { data, error } = await supabase
     .from("leads")
-    .select("id, name, phone, email, property_id, appointment_date, appointment_time")
+    .select("id, name, phone, email, property_id, appointment_date, appointment_time, qualification")
     .eq("tenant_id", tenantId)
     .eq("source", "web_demo");
 
@@ -171,6 +174,17 @@ export async function mergeDuplicateWebLeads(
     await supabase.from("leads").update(patch).eq("id", leadId);
   }
 
+  // Lo que se averiguó en las sesiones viejas tampoco se pierde, pero solo completa lo que
+  // falta: lo de la conversación en curso es más nuevo.
+  const qualification: LeadQualification = Object.assign(
+    {},
+    ...duplicates.map((row) => (row.qualification as LeadQualification | null) ?? {}),
+    (current?.qualification as LeadQualification | null) ?? {}
+  );
+  if (Object.keys(qualification).length > 0) {
+    await supabase.from("leads").update({ qualification }).eq("id", leadId);
+  }
+
   const { error: deleteError } = await supabase
     .from("leads")
     .delete()
@@ -183,7 +197,11 @@ export async function mergeDuplicateWebLeads(
   console.info(`mergeDuplicateWebLeads: ${duplicates.length} ficha(s) duplicada(s) unificadas en ${leadId}`);
 }
 
-/** Actualiza el lead de WhatsApp con la visita agendada, para que se vea en el panel. */
+/**
+ * Actualiza el lead con la visita agendada, para que se vea en el panel. Lo pasa a la etapa
+ * "visita" si todavía estaba antes en el embudo; no lo hace retroceder si ya estaba en
+ * negociación o cerrado.
+ */
 export async function attachAppointmentToLead(
   supabase: SupabaseClient,
   leadId: string,
@@ -193,10 +211,50 @@ export async function attachAppointmentToLead(
 ): Promise<void> {
   const { error } = await supabase
     .from("leads")
-    .update({ property_id: propertyId, appointment_date: date, appointment_time: time })
+    .update({ property_id: propertyId, appointment_date: date, appointment_time: time, updated_at: new Date().toISOString() })
     .eq("id", leadId);
 
   if (error) {
     console.error("attachAppointmentToLead:", error.message);
+    return;
+  }
+
+  await supabase.from("leads").update({ status: "visita" }).eq("id", leadId).in("status", ["nuevo", "calificado"]);
+}
+
+/**
+ * Guarda lo que el agente va averiguando del cliente (tool `update_lead_profile`): se fusiona
+ * con lo ya guardado, campo por campo, y un campo vacío no borra uno anterior. La primera
+ * calificación pasa al lead de "nuevo" a "calificado".
+ */
+export async function updateLeadProfile(
+  supabase: SupabaseClient,
+  leadId: string,
+  profile: LeadQualification & { temperature?: LeadTemperature }
+): Promise<void> {
+  const { data: current, error: readError } = await supabase
+    .from("leads")
+    .select("qualification, status")
+    .eq("id", leadId)
+    .maybeSingle();
+
+  if (readError || !current) {
+    console.error("updateLeadProfile:", readError?.message ?? "lead no encontrado");
+    return;
+  }
+
+  const qualification: LeadQualification = { ...((current.qualification as LeadQualification | null) ?? {}) };
+  for (const field of QUALIFICATION_FIELDS) {
+    const value = profile[field]?.trim();
+    if (value) qualification[field] = value;
+  }
+
+  const patch: Record<string, unknown> = { qualification, updated_at: new Date().toISOString() };
+  if (profile.temperature) patch.temperature = profile.temperature;
+  if (current.status === "nuevo") patch.status = "calificado";
+
+  const { error } = await supabase.from("leads").update(patch).eq("id", leadId);
+  if (error) {
+    console.error("updateLeadProfile:", error.message);
   }
 }

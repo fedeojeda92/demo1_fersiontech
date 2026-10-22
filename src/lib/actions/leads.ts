@@ -11,6 +11,7 @@ import { sendWhatsAppTemplate, normalizeArgentinePhone } from "@/lib/whatsapp";
 import { createGoogleCalendarEvent, isGoogleCalendarConfigured } from "@/lib/googleCalendar";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getAvailability } from "@/lib/availability";
+import { LEAD_STATUSES, type LeadStatus } from "@/lib/leads";
 
 const LeadSchema = z.object({
   name: z.string().min(2, "Ingresá tu nombre completo."),
@@ -128,21 +129,19 @@ export async function cancelAppointmentAction(locale: string, leadId: string): P
   revalidatePath(`/${locale}/admin/agenda`);
 }
 
-export async function updateLeadStatusAction(
-  locale: string,
-  leadId: string,
-  status: "nuevo" | "contactado" | "cerrado"
-): Promise<void> {
+export async function updateLeadStatusAction(locale: string, leadId: string, status: LeadStatus): Promise<void> {
   const agent = await getCurrentAgent(locale);
+  if (!LEAD_STATUSES.includes(status)) return;
   const supabase = await createClient();
 
   await supabase
     .from("leads")
-    .update({ status })
+    .update({ status, updated_at: new Date().toISOString() })
     .eq("id", leadId)
     .eq("tenant_id", agent.tenant_id);
 
   revalidatePath(`/${locale}/admin/leads`);
+  revalidatePath(`/${locale}/admin/leads/${leadId}`);
 }
 
 interface LeadNotificationPayload {

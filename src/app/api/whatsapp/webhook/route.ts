@@ -96,11 +96,14 @@ async function handleInboundMessage(message: WhatsAppMessage) {
   const supabase = createAdminClient();
   const tenantId = await getTenantIdAdmin(supabase);
 
+  // El historial se lee ANTES de guardar el mensaje entrante: generateAgentReply lo agrega
+  // como userMessage, y leído después le llegaba dos veces al modelo.
+  const history = await getRecentMessages(supabase, tenantId, from);
+
   const { isDuplicate } = await saveInboundMessage(supabase, tenantId, from, message.id, message.text.body);
   if (isDuplicate) return; // Meta reintentó la entrega del webhook, ya lo procesamos.
 
   const { id: leadId } = await upsertWhatsappLead(supabase, tenantId, from);
-  const history = await getRecentMessages(supabase, tenantId, from);
 
   const replyText = await generateAgentReply({
     supabase,

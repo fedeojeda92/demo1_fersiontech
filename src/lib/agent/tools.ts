@@ -8,7 +8,9 @@ import {
   mergeDuplicateWebLeads,
   rememberLeadProperty,
   updateLeadContact,
+  updateLeadProfile,
 } from "@/lib/data/whatsappLeads";
+import { LEAD_TEMPERATURES, type LeadQualification } from "@/lib/leads";
 import { createGoogleCalendarEvent, isGoogleCalendarConfigured } from "@/lib/googleCalendar";
 import { getAvailability, VISIT_DURATION_MINUTES, type Availability } from "@/lib/availability";
 import { sendWhatsAppTemplate } from "@/lib/whatsapp";
@@ -41,6 +43,20 @@ export const SaveContactInput = z.object({
   name: z.string().describe("Nombre del interesado, tal como lo dijo"),
   phone: z.string().optional().describe("Teléfono de contacto, si lo dio"),
   email: z.string().optional().describe("Email de contacto, si lo dio"),
+});
+
+export const UpdateLeadProfileInput = z.object({
+  need: z.string().optional(),
+  household: z.string().optional(),
+  must_haves: z.string().optional(),
+  timeline: z.string().optional(),
+  budget: z.string().optional(),
+  payment: z.string().optional(),
+  decision_makers: z.string().optional(),
+  opportunity: z.string().optional(),
+  temperature: z.enum(LEAD_TEMPERATURES).optional(),
+  summary: z.string().optional(),
+  next_step: z.string().optional(),
 });
 
 export const AGENT_TOOLS: FunctionDeclaration[] = [
@@ -102,6 +118,31 @@ export const AGENT_TOOLS: FunctionDeclaration[] = [
     },
   },
   {
+    name: "update_lead_profile",
+    description:
+      "Guarda en la ficha del cliente lo que se va sabiendo de su búsqueda, para que el asesor humano lo tenga calificado en el panel. Usar en el mismo turno en que el cliente cuenta algo nuevo, sin decírselo. Mandar solo los campos nuevos o que cambiaron: lo anterior se conserva. Escribir cada campo en una frase corta y concreta.",
+    parametersJsonSchema: {
+      type: "object",
+      properties: {
+        need: { type: "string", description: "Qué busca y para qué (ej: 'casa para vivir todo el año')" },
+        household: { type: "string", description: "Quiénes van a vivir (ej: 'familia de 4, dos chicos')" },
+        must_haves: { type: "string", description: "Lo que no puede faltar (ej: '3 dormitorios, jardín')" },
+        timeline: { type: "string", description: "Para cuándo (ej: 'mudarse antes de marzo')" },
+        budget: { type: "string", description: "Presupuesto, con moneda (ej: 'hasta USD 180.000')" },
+        payment: { type: "string", description: "Cómo paga (ej: 'USD 80.000 + venta de depto en Lanús')" },
+        decision_makers: { type: "string", description: "Quién decide (ej: 'él y su esposa')" },
+        opportunity: { type: "string", description: "Oportunidad para la inmobiliaria (ej: 'captación: depto en Lanús para tasar')" },
+        temperature: {
+          type: "string",
+          enum: [...LEAD_TEMPERATURES],
+          description: "caliente: necesidad clara + 3 meses o menos + forma de pago definida; tibio: falta alguna; frio: solo mira o no puede pagar",
+        },
+        summary: { type: "string", description: "Una o dos frases para entender al cliente de un vistazo" },
+        next_step: { type: "string", description: "Qué conviene hacer con este cliente" },
+      },
+    },
+  },
+  {
     name: "escalate_to_human",
     description:
       "Deriva la conversación a un agente humano (asesoría legal/impositiva, negociación de precio, pedido explícito de hablar con una persona, o cualquier caso fuera de lo que el agente puede resolver). Avisa al agente humano por WhatsApp.",
@@ -127,8 +168,9 @@ function getSiteUrl(): string {
  * es qué efectos se permiten:
  * - "whatsapp": conversación real, agenda en el Google Calendar del agente.
  * - "web": chat abierto de la demo (cualquiera puede entrar). Guarda el lead y el turno
- *   para que se vean en /admin/leads, pero NO escribe en el Google Calendar real —
- *   si no, cada visitante curioso le mete un turno falso en la agenda al dueño.
+ *   para que se vean en /admin/leads, y si hay un calendario conectado agenda ahí también,
+ *   marcado "(demo web)" — es la forma de mostrarle la integración a un prospecto. Antes se
+ *   salteaba para no llenar la agenda de turnos falsos; se decidió priorizar la demo.
  */
 export type AgentChannel = "whatsapp" | "web";
 
@@ -159,6 +201,8 @@ export async function executeTool(name: string, input: unknown, ctx: ToolContext
       return executeSaveContact(SaveContactInput.parse(input), ctx);
     case "schedule_visit":
       return executeScheduleVisit(ScheduleVisitInput.parse(input), ctx);
+    case "update_lead_profile":
+      return executeUpdateLeadProfile(UpdateLeadProfileInput.parse(input), ctx);
     case "escalate_to_human":
       return executeEscalateToHuman(EscalateToHumanInput.parse(input), ctx);
     default:
@@ -184,7 +228,11 @@ async function executeSearchProperties(
     .slice(0, 5)
     .map((p) => {
       const caracteristicas = [
-        p.bedrooms ? `${p.bedrooms} amb.` : null,
+        // bedrooms son dormitorios; los ambientes suman el living. Antes se le pasaba
+        // "3 amb." por una casa de 3 dormitorios, y el agente contradecía al cliente.
+        p.bedrooms
+          ? `${p.bedrooms + 1} ambientes (${p.bedrooms} dormitorios)`
+          : p.type === "departamento" ? "monoambiente" : null,
         p.bathrooms ? `${p.bathrooms} baños` : null,
         `${p.area} m²`,
         p.garage ? `${p.garage} cochera(s)` : null,
@@ -243,8 +291,9 @@ async function executeScheduleVisit(
     return "No se agendó la visita: todavía no tenemos los datos del interesado. Pedile el nombre y un teléfono o email, guardalos con save_contact, y recién ahí volvé a intentar agendar.";
   }
 
-  // En el chat web no se escribe en el Google Calendar real (ver AgentChannel), así que
-  // tampoco se exige que esté configurado: el turno igual queda registrado en el lead.
+  // En WhatsApp el calendario es obligatorio: es una visita real. En la web se agenda en el
+  // calendario si está conectado (para mostrar la integración en la demo), pero si no lo está
+  // el turno igual queda registrado en el lead.
   if (ctx.channel === "whatsapp" && !isGoogleCalendarConfigured()) {
     return "El calendario del agente no está configurado todavía — avisale que confirme la visita manualmente.";
   }
@@ -270,13 +319,16 @@ async function executeScheduleVisit(
   }
 
   const title = (property.title as { es?: string })?.es ?? "Propiedad";
-  if (ctx.channel === "whatsapp") {
+  const leadId = await ctx.ensureLeadId();
+
+  if (isGoogleCalendarConfigured() && agents && agents.length > 0) {
+    const event = await describeVisitEvent(ctx, leadId, title);
     await Promise.all(
-      (agents ?? []).map((a) =>
+      agents.map((a) =>
         createGoogleCalendarEvent({
           refreshToken: a.google_refresh_token as string,
-          summary: `Visita WhatsApp: ${title}`,
-          description: `Coordinado por el agente conversacional. Tel: ${ctx.phone}`,
+          summary: event.summary,
+          description: event.description,
           location: property.address as string,
           date: input.date,
           time: input.time,
@@ -285,9 +337,46 @@ async function executeScheduleVisit(
     );
   }
 
-  await attachAppointmentToLead(ctx.supabase, await ctx.ensureLeadId(), input.propertyId, input.date, input.time);
+  await attachAppointmentToLead(ctx.supabase, leadId, input.propertyId, input.date, input.time);
 
   return `Visita agendada para el ${input.date} a las ${input.time}.`;
+}
+
+/**
+ * Título y descripción del evento de Google Calendar: que el asesor sepa a quién va a ver y
+ * qué busca sin abrir el panel. Lo de la web se marca como demo, porque cualquiera puede
+ * escribir en ese chat.
+ */
+async function describeVisitEvent(
+  ctx: ToolContext,
+  leadId: string,
+  propertyTitle: string
+): Promise<{ summary: string; description: string }> {
+  const { data: lead } = await ctx.supabase
+    .from("leads")
+    .select("name, phone, email, qualification")
+    .eq("id", leadId)
+    .maybeSingle();
+
+  const q = (lead?.qualification as LeadQualification | null) ?? {};
+  const phone = (lead?.phone as string | null)?.startsWith("web-") ? null : lead?.phone;
+  const name = (lead?.name as string | undefined) ?? "Cliente";
+  const lines = [
+    `Cliente: ${name}`,
+    [phone && `Tel: ${phone}`, lead?.email && `Email: ${lead.email}`].filter(Boolean).join(" · ") || null,
+    q.need && `Busca: ${q.need}`,
+    q.timeline && `Plazo: ${q.timeline}`,
+    q.payment && `Forma de pago: ${q.payment}`,
+    q.decision_makers && `Deciden: ${q.decision_makers}`,
+    q.opportunity && `Oportunidad: ${q.opportunity}`,
+    q.summary && `Resumen: ${q.summary}`,
+    `Agendado por el agente (${ctx.channel === "web" ? "chat web" : "WhatsApp"}).`,
+  ].filter(Boolean);
+
+  return {
+    summary: `Visita · ${propertyTitle} · ${name}${ctx.channel === "web" ? " (demo web)" : ""}`,
+    description: lines.join("\n"),
+  };
 }
 
 function describeUnavailableDate(reason: Extract<Availability, { ok: false }>["reason"]): string {
@@ -331,6 +420,14 @@ async function executeSaveContact(
   }
 
   return "Datos de contacto guardados.";
+}
+
+async function executeUpdateLeadProfile(
+  input: z.infer<typeof UpdateLeadProfileInput>,
+  ctx: ToolContext
+): Promise<string> {
+  await updateLeadProfile(ctx.supabase, await ctx.ensureLeadId(), input);
+  return "Ficha del cliente actualizada.";
 }
 
 async function executeEscalateToHuman(
