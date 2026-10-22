@@ -42,6 +42,21 @@ Ver la sección 7 del `README.md` para el paso a paso de Meta for Developers. Pu
 4. Volver a mandar a aprobación las plantillas (`nuevo_lead_v2`, `bienvenida_lead`) si Meta las asocia por número — confirmarlo al hacerlo, puede que solo haga falta re-suscribir el webhook.
 5. Sin este paso, el agente **solo puede hablar con los ~5 números de prueba** cargados a mano en el panel de Meta — ver la sección "Probá el agente" en el README para agregar/verificar esos números mientras tanto.
 
+## 4b. Que no le bloqueen el número al cliente (cumplimiento de WhatsApp)
+
+Que a un cliente le suspendan el WhatsApp es lo peor que puede pasar. Antes de entregarle el agente, revisar todo esto. Fuentes, revisadas el 22/10/2026: Términos de servicio de WhatsApp, Política de mensajes de WhatsApp Business (whatsappbusiness.com/policy) y Condiciones de las soluciones de WhatsApp Business (sección de proveedores de IA, vigente desde el 15/01/2026).
+
+- [ ] **Solo la API oficial (Cloud API de Meta).** Nunca herramientas no oficiales que se conectan con un QR (Baileys, whatsapp-web.js, WAHA): son la causa número uno de baneos.
+- [ ] **Coexistencia** si el cliente ya usa la app WhatsApp Business: el mismo número queda en la app y en la API, con los chats sincronizados, y no pierde su número ni su historial. Se hace con el Embedded Signup de Meta. El número tiene que tener antigüedad en la app; si es nuevo, calentarlo primero, con pocas conversaciones durante un par de semanas.
+- [ ] **El agente solo responde.** El cliente final escribe primero, así que hay consentimiento y estamos dentro de las 24 horas, donde se puede responder libremente y con automatización.
+- [ ] **Lo que la inmobiliaria manda por iniciativa propia va con plantillas aprobadas** (recordatorios de visita, seguimientos) y solo a quien aceptó recibirlos. Nada de plantillas de marketing a quien no las pidió.
+- [ ] **Siempre una salida a una persona:** configurar `WHATSAPP_AGENT_NUMBER` y la plantilla de derivación (`escalate_to_human`). La política lo exige para la automatización.
+- [ ] **Bot del negocio, no de uso general.** La regla de 2026 prohíbe los asistentes de IA de uso general, pero permite los de atención y ventas de un negocio. El prompt ya limita al agente a los temas de la inmobiliaria: no sacar esa regla al personalizarlo.
+- [ ] **Verificación de empresa en Meta y perfil completo:** nombre visible aprobado, datos de contacto reales, dirección y web.
+- [ ] **Política de privacidad** publicada en la web del cliente. Tiene que mencionar que las consultas las atiende un asistente con IA y qué datos se guardan.
+- [ ] **Gemini en un plan pago para clientes reales:** en el plan gratuito Google puede usar las conversaciones para entrenar sus modelos.
+- [ ] **Indicador de calidad del número:** revisarlo en el WhatsApp Manager la primera semana y después una vez por semana. Si baja (por bloqueos o denuncias), frenar los envíos de plantillas y revisar qué pasó.
+
 ## 5. QA antes de entregarle el agente al cliente
 
 Repetir (aunque sea de forma resumida) las pruebas de RM-03/RM-05/RM-08/RM-09 con el catálogo y el prompt reales del cliente nuevo:
