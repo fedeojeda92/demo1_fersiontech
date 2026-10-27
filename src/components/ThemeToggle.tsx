@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { Moon, Sun } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -37,4 +37,14 @@ export default function ThemeToggle() {
       {dark ? <Sun size={15} /> : <Moon size={15} />}
     </button>
   );
+}
+
+// Al cambiar de idioma, Next vuelve a armar <html> sin el script del layout: esto reaplica el modo guardado.
+export function ThemeSync() {
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(THEME_KEY) === "dark") document.documentElement.dataset.theme = "dark";
+    } catch {}
+  }, []);
+  return null;
 }

@@ -9,13 +9,14 @@
   --c-obsidian-lighter: #EAE2D6;
   --c-obsidian-card: #FFFFFF;
   --c-onyx: #F6F1E9;
-  --c-champagne: #8A6A35;
-  --c-champagne-light: #A8834A;
-  --c-champagne-dark: #6B4F24;
+  --c-champagne: #7E5F2C;
+  --c-champagne-light: #8F6E37;
+  --c-champagne-dark: #614720;
   --c-ivory: #1A1612;
   --c-pearl: #3A332B;
   --c-smoke: #5E554B;
-  --gold-rgb: 138, 106, 53;
+  --c-emerald: #2D7D46;
+  --gold-rgb: 126, 95, 44;
   --ink-rgb: 31, 27, 22;
   --glass: rgba(250, 247, 242, 0.82);
   --glass-card: rgba(255, 255, 255, 0.85);
@@ -37,6 +38,7 @@
   --c-ivory: #F3EEE6;
   --c-pearl: #E6DED2;
   --c-smoke: #A79F94;
+  --c-emerald: #5CBF7E;
   --gold-rgb: 201, 166, 107;
   --ink-rgb: 243, 238, 230;
   --glass: rgba(15, 14, 12, 0.72);
@@ -61,7 +63,7 @@
   --color-pearl: var(--c-pearl);
   --color-smoke: var(--c-smoke);
   --color-ember: #FF6B35;
-  --color-emerald: #2D7D46;
+  --color-emerald: var(--c-emerald);
 
   --font-heading: "Playfair Display", Georgia, "Times New Roman", serif;
   --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

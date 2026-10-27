@@ -3,6 +3,7 @@ import { Playfair_Display, Inter } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import "../globals.css";
+import { ThemeSync } from "@/components/ThemeToggle";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -66,6 +67,7 @@ export default async function LocaleLayout({
         />
       </head>
       <body className="min-h-screen flex flex-col">
+        <ThemeSync />
         <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
       </body>
     </html>
