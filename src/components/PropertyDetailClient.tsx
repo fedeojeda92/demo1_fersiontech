@@ -139,17 +139,17 @@ export default function PropertyDetailClient({
                   />
                 </motion.div>
               </AnimatePresence>
-              <div className="absolute inset-0 bg-gradient-to-t from-obsidian via-obsidian/20 to-obsidian/40" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
 
               <button
                 onClick={() => setCurrentImage(currentImage === 0 ? property.images.length - 1 : currentImage - 1)}
-                className="absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-ivory/10 backdrop-blur-sm rounded-full flex items-center justify-center text-ivory hover:bg-ivory/20 transition-colors border border-ivory/10"
+                className="absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-obsidian/80 backdrop-blur-sm rounded-full flex items-center justify-center text-ivory hover:bg-obsidian transition-colors border border-ivory/10"
               >
                 <ChevronLeft size={20} />
               </button>
               <button
                 onClick={() => setCurrentImage(currentImage === property.images.length - 1 ? 0 : currentImage + 1)}
-                className="absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-ivory/10 backdrop-blur-sm rounded-full flex items-center justify-center text-ivory hover:bg-ivory/20 transition-colors border border-ivory/10"
+                className="absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-obsidian/80 backdrop-blur-sm rounded-full flex items-center justify-center text-ivory hover:bg-obsidian transition-colors border border-ivory/10"
               >
                 <ChevronRight size={20} />
               </button>
@@ -161,19 +161,19 @@ export default function PropertyDetailClient({
               <div className="absolute bottom-6 right-6 flex gap-3">
                 <button
                   onClick={() => setIsLiked(!isLiked)}
-                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-all border ${isLiked ? "bg-red-500 text-white border-red-500" : "bg-ivory/10 backdrop-blur-sm text-ivory hover:bg-ivory/20 border-ivory/10"}`}
+                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-all border ${isLiked ? "bg-red-500 text-white border-red-500" : "bg-obsidian/80 backdrop-blur-sm text-ivory hover:bg-obsidian border-ivory/10"}`}
                 >
                   <Heart size={20} fill={isLiked ? "currentColor" : "none"} />
                 </button>
                 <button
                   onClick={handleShare}
-                  className="w-12 h-12 bg-ivory/10 backdrop-blur-sm rounded-full flex items-center justify-center text-ivory hover:bg-ivory/20 transition-colors border border-ivory/10"
+                  className="w-12 h-12 bg-obsidian/80 backdrop-blur-sm rounded-full flex items-center justify-center text-ivory hover:bg-obsidian transition-colors border border-ivory/10"
                 >
                   {shared ? <Check size={20} className="text-champagne" /> : <Share2 size={20} />}
                 </button>
                 <button
                   onClick={() => setLightboxOpen(true)}
-                  className="w-12 h-12 bg-ivory/10 backdrop-blur-sm rounded-full flex items-center justify-center text-ivory hover:bg-ivory/20 transition-colors border border-ivory/10"
+                  className="w-12 h-12 bg-obsidian/80 backdrop-blur-sm rounded-full flex items-center justify-center text-ivory hover:bg-obsidian transition-colors border border-ivory/10"
                 >
                   <Maximize2 size={20} />
                 </button>

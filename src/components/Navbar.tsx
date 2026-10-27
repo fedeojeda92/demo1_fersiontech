@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "@/i18n/navigation";
 import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { Menu, X, Phone, Mail, ChevronDown, Globe } from "lucide-react";
+import ThemeToggle from "./ThemeToggle";
 
 const localeLabels: Record<string, string> = { es: "ES", en: "EN" };
 
@@ -123,6 +124,8 @@ export default function Navbar() {
 
             {/* Right section */}
             <div className="flex items-center gap-4">
+              <ThemeToggle />
+
               {/* Language switcher */}
               <div className="relative">
                 <button
@@ -189,7 +192,7 @@ export default function Navbar() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-x-0 top-20 md:top-[calc(5rem+2.5rem)] z-40 bg-obsidian/98 backdrop-blur-2xl border-t border-champagne/10 shadow-2xl shadow-black/60 lg:hidden max-h-[calc(100dvh-5rem)] overflow-y-auto"
+            className="fixed inset-x-0 top-20 md:top-[calc(5rem+2.5rem)] z-40 bg-obsidian/98 backdrop-blur-2xl border-t border-champagne/10 shadow-2xl shadow-black/20 lg:hidden max-h-[calc(100dvh-5rem)] overflow-y-auto"
           >
             <nav className="max-w-7xl mx-auto px-6 py-8 flex flex-col gap-1">
               {navLinks.map((link, i) => {

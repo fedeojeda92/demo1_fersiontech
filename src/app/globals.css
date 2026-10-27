@@ -1,24 +1,101 @@
 @import "tailwindcss";
 
+/* Paleta "marfil y champagne" (26/10): modo claro por defecto y oscuro con data-theme="dark" en <html>.
+   Los nombres de los tokens se mantienen para no tocar los componentes: obsidian = fondo, ivory = texto, champagne = acento. */
+:root {
+  color-scheme: light;
+  --c-obsidian: #FAF7F2;
+  --c-obsidian-light: #F3EEE6;
+  --c-obsidian-lighter: #EAE2D6;
+  --c-obsidian-card: #FFFFFF;
+  --c-onyx: #F6F1E9;
+  --c-champagne: #8A6A35;
+  --c-champagne-light: #A8834A;
+  --c-champagne-dark: #6B4F24;
+  --c-ivory: #1A1612;
+  --c-pearl: #3A332B;
+  --c-smoke: #5E554B;
+  --gold-rgb: 138, 106, 53;
+  --ink-rgb: 31, 27, 22;
+  --glass: rgba(250, 247, 242, 0.82);
+  --glass-card: rgba(255, 255, 255, 0.85);
+  --glass-card-hover: rgba(255, 255, 255, 0.98);
+  --shadow-a: rgba(90, 70, 40, 0.10);
+  --shadow-b: rgba(255, 255, 255, 0.9);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --c-obsidian: #0F0E0C;
+  --c-obsidian-light: #171512;
+  --c-obsidian-lighter: #211E1A;
+  --c-obsidian-card: #1A1815;
+  --c-onyx: #121110;
+  --c-champagne: #C9A66B;
+  --c-champagne-light: #E0C48F;
+  --c-champagne-dark: #A8864F;
+  --c-ivory: #F3EEE6;
+  --c-pearl: #E6DED2;
+  --c-smoke: #A79F94;
+  --gold-rgb: 201, 166, 107;
+  --ink-rgb: 243, 238, 230;
+  --glass: rgba(15, 14, 12, 0.72);
+  --glass-card: rgba(26, 24, 21, 0.6);
+  --glass-card-hover: rgba(26, 24, 21, 0.85);
+  --shadow-a: rgba(0, 0, 0, 0.5);
+  --shadow-b: rgba(40, 36, 30, 0.3);
+}
+
 @theme inline {
-  --color-obsidian: #0A0A0F;
-  --color-obsidian-light: #12121A;
-  --color-obsidian-lighter: #1A1A25;
-  --color-obsidian-card: #15151F;
-  --color-onyx: #0E0E16;
-  --color-champagne: #D4AF37;
-  --color-champagne-light: #E8CC6E;
-  --color-champagne-dark: #B8941E;
-  --color-champagne-muted: rgba(212, 175, 55, 0.12);
-  --color-ivory: #F5F0E8;
-  --color-ivory-muted: rgba(245, 240, 232, 0.7);
-  --color-pearl: #E8E0D5;
-  --color-smoke: #8A8A9A;
+  --color-obsidian: var(--c-obsidian);
+  --color-obsidian-light: var(--c-obsidian-light);
+  --color-obsidian-lighter: var(--c-obsidian-lighter);
+  --color-obsidian-card: var(--c-obsidian-card);
+  --color-onyx: var(--c-onyx);
+  --color-champagne: var(--c-champagne);
+  --color-champagne-light: var(--c-champagne-light);
+  --color-champagne-dark: var(--c-champagne-dark);
+  --color-champagne-muted: rgba(var(--gold-rgb), 0.12);
+  --color-ivory: var(--c-ivory);
+  --color-ivory-muted: rgba(var(--ink-rgb), 0.7);
+  --color-pearl: var(--c-pearl);
+  --color-smoke: var(--c-smoke);
   --color-ember: #FF6B35;
   --color-emerald: #2D7D46;
 
   --font-heading: "Playfair Display", Georgia, "Times New Roman", serif;
   --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+
+/* Modo claro: los textos tenues (pensados para fondo oscuro) se oscurecen un poco para que se lean sobre marfil. */
+:root:not([data-theme="dark"]) .text-ivory\/15,
+:root:not([data-theme="dark"]) .text-ivory\/20,
+:root:not([data-theme="dark"]) .text-ivory\/25 { color: rgba(var(--ink-rgb), 0.64); }
+:root:not([data-theme="dark"]) .text-ivory\/30,
+:root:not([data-theme="dark"]) .text-ivory\/35,
+:root:not([data-theme="dark"]) .text-ivory\/40 { color: rgba(var(--ink-rgb), 0.7); }
+:root:not([data-theme="dark"]) .text-ivory\/50,
+:root:not([data-theme="dark"]) .text-ivory\/60 { color: rgba(var(--ink-rgb), 0.76); }
+:root:not([data-theme="dark"]) .text-champagne\/40,
+:root:not([data-theme="dark"]) .text-champagne\/50,
+:root:not([data-theme="dark"]) .text-champagne\/60,
+:root:not([data-theme="dark"]) .text-champagne\/70 { color: var(--c-champagne); }
+
+
+/* Velo sobre las fotos del hero. Claro: la foto se ve, con una aureola marfil detrás del texto y fundido abajo.
+   Oscuro: las mismas tres capas que tenía el diseño original. */
+.hero-veil {
+  background:
+    radial-gradient(ellipse 64% 56% at 50% 50%, rgba(250, 247, 242, 0.9) 0%, rgba(250, 247, 242, 0.72) 45%, rgba(250, 247, 242, 0) 86%),
+    linear-gradient(to top, var(--c-obsidian) 0%, rgba(250, 247, 242, 0) 26%),
+    rgba(250, 247, 242, 0.12);
+}
+[data-theme="dark"] .hero-veil {
+  background:
+    linear-gradient(to top, var(--c-obsidian), transparent 50%, rgba(15, 14, 12, 0.4)),
+    linear-gradient(to right, rgba(15, 14, 12, 0.9), rgba(15, 14, 12, 0.5), rgba(15, 14, 12, 0.7)),
+    rgba(15, 14, 12, 0.7);
 }
 
 @layer base {
@@ -83,67 +160,67 @@
 
   .bg-mesh {
     background:
-      radial-gradient(ellipse at 20% 50%, rgba(212, 175, 55, 0.08) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 20%, rgba(212, 175, 55, 0.05) 0%, transparent 50%),
-      radial-gradient(ellipse at 40% 80%, rgba(212, 175, 55, 0.03) 0%, transparent 50%),
+      radial-gradient(ellipse at 20% 50%, rgba(var(--gold-rgb), 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(var(--gold-rgb), 0.05) 0%, transparent 50%),
+      radial-gradient(ellipse at 40% 80%, rgba(var(--gold-rgb), 0.03) 0%, transparent 50%),
       var(--color-obsidian);
   }
 
   .bg-mesh-subtle {
     background:
-      radial-gradient(ellipse at 20% 50%, rgba(212, 175, 55, 0.04) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 20%, rgba(212, 175, 55, 0.03) 0%, transparent 50%),
+      radial-gradient(ellipse at 20% 50%, rgba(var(--gold-rgb), 0.04) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(var(--gold-rgb), 0.03) 0%, transparent 50%),
       var(--color-obsidian-light);
   }
 
   .glass-luxury {
     backdrop-filter: blur(24px) saturate(180%);
     -webkit-backdrop-filter: blur(24px) saturate(180%);
-    background: rgba(10, 10, 15, 0.7);
-    border: 1px solid rgba(212, 175, 55, 0.1);
+    background: var(--glass);
+    border: 1px solid rgba(var(--gold-rgb), 0.1);
   }
 
   .glass-card {
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    background: rgba(21, 21, 31, 0.6);
-    border: 1px solid rgba(212, 175, 55, 0.08);
+    background: var(--glass-card);
+    border: 1px solid rgba(var(--gold-rgb), 0.08);
   }
 
   .glass-card-hover:hover {
-    border-color: rgba(212, 175, 55, 0.25);
-    background: rgba(21, 21, 31, 0.8);
+    border-color: rgba(var(--gold-rgb), 0.25);
+    background: var(--glass-card-hover);
   }
 
   .neumorphic-dark {
     background: var(--color-obsidian-card);
     box-shadow:
-      8px 8px 20px rgba(0, 0, 0, 0.5),
-      -8px -8px 20px rgba(30, 30, 45, 0.3);
+      8px 8px 20px var(--shadow-a),
+      -8px -8px 20px var(--shadow-b);
   }
 
   .neumorphic-dark-inset {
     background: var(--color-obsidian-light);
     box-shadow:
-      inset 4px 4px 10px rgba(0, 0, 0, 0.5),
-      inset -4px -4px 10px rgba(30, 30, 45, 0.2);
+      inset 4px 4px 10px var(--shadow-a),
+      inset -4px -4px 10px var(--shadow-b);
   }
 
   .luxury-glow {
     box-shadow:
-      0 0 30px rgba(212, 175, 55, 0.15),
-      0 0 60px rgba(212, 175, 55, 0.05);
+      0 0 30px rgba(var(--gold-rgb), 0.15),
+      0 0 60px rgba(var(--gold-rgb), 0.05);
   }
 
   .luxury-glow-strong {
     box-shadow:
-      0 0 40px rgba(212, 175, 55, 0.25),
-      0 0 80px rgba(212, 175, 55, 0.1);
+      0 0 40px rgba(var(--gold-rgb), 0.25),
+      0 0 80px rgba(var(--gold-rgb), 0.1);
   }
 
   .gold-border-glow {
-    border: 1px solid rgba(212, 175, 55, 0.3);
-    box-shadow: 0 0 20px rgba(212, 175, 55, 0.1);
+    border: 1px solid rgba(var(--gold-rgb), 0.3);
+    box-shadow: 0 0 20px rgba(var(--gold-rgb), 0.1);
   }
 
   .shimmer-gold {
@@ -161,7 +238,7 @@
     background: linear-gradient(
       90deg,
       transparent,
-      rgba(212, 175, 55, 0.06),
+      rgba(var(--gold-rgb), 0.06),
       transparent
     );
     animation: shimmer 4s infinite;
@@ -203,8 +280,8 @@
 }
 
 @keyframes pulse-gold {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4); }
-  50% { box-shadow: 0 0 0 20px rgba(212, 175, 55, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(var(--gold-rgb), 0.4); }
+  50% { box-shadow: 0 0 0 20px rgba(var(--gold-rgb), 0); }
 }
 
 @keyframes rotate-slow {

@@ -53,7 +53,7 @@ export default function PropertyCard({ property, index = 0 }: PropertyCardProps)
           />
         </motion.div>
         {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-obsidian via-obsidian/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
 
         {/* Featured badge */}
         {property.featured && (
@@ -75,13 +75,13 @@ export default function PropertyCard({ property, index = 0 }: PropertyCardProps)
         {/* Virtual tour / Drone badges */}
         <div className="absolute bottom-16 left-4 flex gap-2">
           {property.hasVirtualTour && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-champagne/20 backdrop-blur-sm text-champagne text-[10px] font-medium tracking-wider rounded-full border border-champagne/20">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-obsidian/85 backdrop-blur-sm text-champagne text-[10px] font-semibold tracking-wider rounded-full border border-champagne/30">
               <Eye size={10} />
               360°
             </div>
           )}
           {property.hasDroneVideo && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-champagne/20 backdrop-blur-sm text-champagne text-[10px] font-medium tracking-wider rounded-full border border-champagne/20">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-obsidian/85 backdrop-blur-sm text-champagne text-[10px] font-semibold tracking-wider rounded-full border border-champagne/30">
               <Video size={10} />
               DRONE
             </div>

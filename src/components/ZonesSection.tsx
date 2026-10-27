@@ -50,15 +50,15 @@ export default function ZonesSection() {
                   whileHover={{ scale: 1.08 }}
                   transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-obsidian via-obsidian/30 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" />
                 <div className="absolute inset-0 bg-champagne/0 group-hover:bg-champagne/5 transition-colors duration-500" />
 
                 <div className="absolute bottom-0 left-0 right-0 p-6">
                   <div className="flex items-center gap-2 mb-1">
                     <MapPin size={14} className="text-champagne" />
-                    <span className="font-heading text-xl text-ivory">{zone.name}</span>
+                    <span className="font-heading text-xl text-white">{zone.name}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-ivory/40 text-sm">
+                  <div className="flex items-center gap-2 text-white/75 text-sm">
                     <Building2 size={12} />
                     <span>{zone.properties} {t("properties_suffix")}</span>
                   </div>

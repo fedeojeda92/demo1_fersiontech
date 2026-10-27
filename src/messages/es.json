@@ -10,7 +10,9 @@
     "about": "Nosotros",
     "contact": "Contacto",
     "sell": "Vender",
-    "hours": "LUN - VIE: 9:00 - 18:00"
+    "hours": "LUN - VIE: 9:00 - 18:00",
+    "theme_dark": "Cambiar a modo oscuro",
+    "theme_light": "Cambiar a modo claro"
   },
   "common": {
     "loading": "Cargando...",

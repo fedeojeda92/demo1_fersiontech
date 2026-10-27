@@ -17,13 +17,13 @@ function createSceneHotspot(hotSpotDiv: HTMLElement, label: string) {
   hotSpotDiv.classList.add("tour360-hotspot");
   hotSpotDiv.innerHTML = `
     <div class="flex flex-col items-center gap-1.5 select-none">
-      <div class="w-9 h-9 rounded-full bg-champagne flex items-center justify-center shadow-lg shadow-black/50 ring-2 ring-obsidian/50 text-obsidian transition-transform duration-200 hover:scale-110">
+      <div class="w-9 h-9 rounded-full bg-champagne flex items-center justify-center shadow-lg shadow-black/20 ring-2 ring-obsidian/50 text-obsidian transition-transform duration-200 hover:scale-110">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
           <circle cx="12" cy="10" r="3"></circle>
         </svg>
       </div>
-      <span class="px-2.5 py-1 rounded-full bg-obsidian/90 border border-champagne/30 text-ivory text-[11px] font-medium tracking-wide whitespace-nowrap shadow-lg shadow-black/40">${label}</span>
+      <span class="px-2.5 py-1 rounded-full bg-obsidian/90 border border-champagne/30 text-ivory text-[11px] font-medium tracking-wide whitespace-nowrap shadow-lg shadow-black/20">${label}</span>
     </div>
   `;
 }

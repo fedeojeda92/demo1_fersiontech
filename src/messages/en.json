@@ -10,7 +10,9 @@
     "about": "About",
     "contact": "Contact",
     "sell": "Sell",
-    "hours": "MON - FRI: 9:00 AM - 6:00 PM"
+    "hours": "MON - FRI: 9:00 AM - 6:00 PM",
+    "theme_dark": "Switch to dark mode",
+    "theme_light": "Switch to light mode"
   },
   "common": {
     "loading": "Loading...",

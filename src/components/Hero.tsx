@@ -100,9 +100,7 @@ export default function Hero({ properties }: { properties: Property[] }) {
             />
           </motion.div>
         </AnimatePresence>
-        <div className="absolute inset-0 bg-obsidian/70" />
-        <div className="absolute inset-0 bg-gradient-to-r from-obsidian/90 via-obsidian/50 to-obsidian/70" />
-        <div className="absolute inset-0 bg-gradient-to-t from-obsidian via-transparent to-obsidian/40" />
+        <div className="hero-veil absolute inset-0" />
       </motion.div>
 
       {/* Film grain */}
@@ -240,7 +238,7 @@ export default function Hero({ properties }: { properties: Property[] }) {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.2 }}
-                className="absolute top-full left-0 right-0 mt-2 glass-luxury rounded-2xl overflow-hidden z-50 text-left shadow-2xl shadow-black/40"
+                className="absolute top-full left-0 right-0 mt-2 glass-luxury rounded-2xl overflow-hidden z-50 text-left shadow-2xl shadow-black/20"
               >
                 {suggestions.map((s, i) => (
                   <Link

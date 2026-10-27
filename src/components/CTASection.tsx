@@ -28,7 +28,7 @@ export default function CTASection() {
       <div
         className="absolute inset-0 opacity-[0.03]"
         style={{
-          backgroundImage: `linear-gradient(rgba(212,175,55,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(212,175,55,0.3) 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(rgba(var(--gold-rgb),0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--gold-rgb),0.3) 1px, transparent 1px)`,
           backgroundSize: "80px 80px",
         }}
       />
