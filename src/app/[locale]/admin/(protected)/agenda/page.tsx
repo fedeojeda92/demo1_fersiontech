@@ -104,9 +104,9 @@ export default async function AdminAgendaPage({
           </p>
         ) : agent.google_email ? (
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-xs text-ivory/40 flex items-center gap-2">
-              <CalendarCheck2 size={16} className="text-emerald-400 shrink-0" />
-              Conectado como <span className="text-ivory">{agent.google_email}</span> — los turnos nuevos crean el
+            <p className="text-xs text-ivory/40 min-w-0">
+              <CalendarCheck2 size={16} className="text-emerald-400 inline-block align-text-bottom mr-2" />
+              Conectado como <span className="text-ivory break-all">{agent.google_email}</span> — los turnos nuevos crean el
               evento automáticamente con notificación push.
             </p>
             <form action={boundDisconnect}>

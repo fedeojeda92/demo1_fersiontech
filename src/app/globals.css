@@ -16,6 +16,7 @@
   --c-pearl: #3A332B;
   --c-smoke: #5E554B;
   --c-emerald: #2D7D46;
+  --c-ember: #C2410C;
   --gold-rgb: 126, 95, 44;
   --ink-rgb: 31, 27, 22;
   --glass: rgba(250, 247, 242, 0.82);
@@ -39,6 +40,7 @@
   --c-pearl: #E6DED2;
   --c-smoke: #A79F94;
   --c-emerald: #5CBF7E;
+  --c-ember: #FF6B35;
   --gold-rgb: 201, 166, 107;
   --ink-rgb: 243, 238, 230;
   --glass: rgba(15, 14, 12, 0.72);
@@ -62,7 +64,7 @@
   --color-ivory-muted: rgba(var(--ink-rgb), 0.7);
   --color-pearl: var(--c-pearl);
   --color-smoke: var(--c-smoke);
-  --color-ember: #FF6B35;
+  --color-ember: var(--c-ember);
   --color-emerald: var(--c-emerald);
 
   --font-heading: "Playfair Display", Georgia, "Times New Roman", serif;
