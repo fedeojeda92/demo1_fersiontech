@@ -2,6 +2,7 @@ import { getCurrentAgent } from "@/lib/dal";
 import { logoutAction } from "@/lib/actions/auth";
 import { Link } from "@/i18n/navigation";
 import { LayoutDashboard, Building2, Users, CalendarDays, BarChart3, LogOut } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default async function AdminLayout({
   children,
@@ -25,9 +26,12 @@ export default async function AdminLayout({
   return (
     <div className="min-h-screen bg-obsidian flex">
       <aside className="w-64 shrink-0 border-r border-ivory/10 bg-obsidian-light hidden md:flex flex-col">
-        <div className="p-6 border-b border-ivory/10">
-          <p className="font-heading text-lg text-gradient-gold">FS Inmobiliaria</p>
-          <p className="text-ivory/40 text-xs mt-1">Panel de administración</p>
+        <div className="p-6 border-b border-ivory/10 flex items-start justify-between gap-3">
+          <div>
+            <p className="font-heading text-lg text-gradient-gold">FS Inmobiliaria</p>
+            <p className="text-ivory/40 text-xs mt-1">Panel de administración</p>
+          </div>
+          <ThemeToggle />
         </div>
         <nav className="flex-1 p-4 space-y-1">
           {navItems.map((item) => (
@@ -57,6 +61,10 @@ export default async function AdminLayout({
         </div>
       </aside>
       <main className="flex-1 min-w-0">{children}</main>
+      {/* En el celular la barra lateral no se muestra: el botón de modo queda fijo abajo a la derecha. */}
+      <div className="md:hidden fixed bottom-4 right-4 z-50 bg-obsidian-card rounded-lg shadow-lg shadow-black/20">
+        <ThemeToggle />
+      </div>
     </div>
   );
 }
