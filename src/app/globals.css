@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Paleta "marfil y champagne" (26/10): modo claro por defecto y oscuro con data-theme="dark" en <html>.
+/* Paleta "marfil y champagne" (26/10, publicada el 28/10): modo claro por defecto y oscuro con data-theme="dark" en <html>.
    Los nombres de los tokens se mantienen para no tocar los componentes: obsidian = fondo, ivory = texto, champagne = acento. */
 :root {
   color-scheme: light;
