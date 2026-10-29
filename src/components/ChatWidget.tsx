@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { AnimatePresence, motion } from "framer-motion";
-import { MessageCircle, Send, X } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { MessageCircle, Send, Sparkles, X } from "lucide-react";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -19,10 +19,17 @@ interface ChatMessage {
  * atado a una cookie httpOnly (ver src/app/api/chat/route.ts), así que recargar la página
  * reanuda la misma conversación sin que el navegador guarde nada.
  */
+const OPENED_KEY = "fs-chat-opened";
+const TEASER_DELAY_MS = 4000;
+
 export default function ChatWidget() {
   const t = useTranslations("chat");
   const [open, setOpen] = useState(false);
-  const [hovered, setHovered] = useState(false);
+  // El chat es lo que se ofrece en la demo: hasta que la persona lo abre por primera vez en la
+  // sesión, el botón late y a los pocos segundos aparece un saludo. Se recuerda en sessionStorage.
+  const [seen, setSeen] = useState(false);
+  const [teaser, setTeaser] = useState(false);
+  const reduceMotion = useReducedMotion();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -37,6 +44,29 @@ export default function ChatWidget() {
   useEffect(() => {
     if (open) inputRef.current?.focus();
   }, [open]);
+
+  useEffect(() => {
+    let opened = false;
+    try {
+      opened = sessionStorage.getItem(OPENED_KEY) === "1";
+    } catch {}
+    const timers = [
+      window.setTimeout(() => setSeen(opened), 0),
+      opened ? 0 : window.setTimeout(() => setTeaser(true), TEASER_DELAY_MS),
+    ];
+    return () => timers.forEach((id) => window.clearTimeout(id));
+  }, []);
+
+  function toggle() {
+    setTeaser(false);
+    if (!open) {
+      setSeen(true);
+      try {
+        sessionStorage.setItem(OPENED_KEY, "1");
+      } catch {}
+    }
+    setOpen((v) => !v);
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -76,56 +106,96 @@ export default function ChatWidget() {
 
   return (
     <>
-      {/* Botón flotante. Va a la izquierda del de WhatsApp (bottom-6 right-6) para no taparlo. */}
-      <motion.button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-label={t("aria_label")}
-        aria-expanded={open}
-        className="fixed bottom-6 right-24 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-champagne-dark via-champagne to-champagne-dark text-obsidian shadow-lg shadow-black/20"
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 260, damping: 18, delay: 1.2 }}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
-        onHoverStart={() => setHovered(true)}
-        onHoverEnd={() => setHovered(false)}
-      >
-        <AnimatePresence mode="wait" initial={false}>
-          {open ? (
-            <motion.span
-              key="close"
-              initial={{ rotate: -90, opacity: 0 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              exit={{ rotate: 90, opacity: 0 }}
+      {/* Botón flotante, abajo a la derecha. En computadora es una pastilla con el texto a la vista. */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <AnimatePresence>
+          {teaser && !open && (
+            <motion.div
+              initial={{ opacity: 0, y: 12, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 8, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 300, damping: 22 }}
+              className="absolute bottom-full right-0 mb-4 w-64 origin-bottom-right"
             >
-              <X size={24} />
-            </motion.span>
-          ) : (
-            <motion.span
-              key="open"
-              initial={{ rotate: 90, opacity: 0 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              exit={{ rotate: -90, opacity: 0 }}
-            >
-              <MessageCircle size={24} />
-            </motion.span>
+              <button
+                type="button"
+                onClick={toggle}
+                className="w-full rounded-2xl rounded-br-sm border border-champagne/30 bg-obsidian-card px-4 py-3 pr-8 text-left text-sm leading-snug text-ivory shadow-xl shadow-black/15"
+              >
+                {t("teaser")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setTeaser(false)}
+                aria-label={t("teaser_close")}
+                className="absolute right-1.5 top-1.5 rounded-full p-1 text-ivory/50 transition-colors hover:text-ivory"
+              >
+                <X size={14} />
+              </button>
+            </motion.div>
           )}
         </AnimatePresence>
 
-        <AnimatePresence>
-          {hovered && !open && (
-            <motion.span
-              initial={{ opacity: 0, x: 8 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 8 }}
-              className="pointer-events-none absolute right-full mr-3 whitespace-nowrap rounded-lg border border-ivory/10 bg-obsidian/90 px-3 py-2 text-sm text-ivory shadow-xl"
-            >
-              {t("tooltip")}
-            </motion.span>
+        <motion.button
+          type="button"
+          onClick={toggle}
+          aria-label={t("aria_label")}
+          aria-expanded={open}
+          className="relative flex h-[60px] min-w-[60px] items-center justify-center gap-2.5 rounded-full bg-gradient-to-br from-champagne-dark via-champagne to-champagne-light px-0 text-obsidian shadow-lg shadow-black/20 sm:h-14 sm:px-5"
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 260, damping: 18, delay: 1.2 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          {!open && !seen && !reduceMotion &&
+            [0, 1].map((k) => (
+              <motion.span
+                key={k}
+                aria-hidden
+                className="pointer-events-none absolute inset-0 rounded-full border-2 border-champagne"
+                initial={{ scale: 1, opacity: 0.6 }}
+                animate={{ scale: 1.6, opacity: 0 }}
+                transition={{ duration: 1.8, repeat: Infinity, repeatDelay: 1.2, delay: 1.6 + k * 0.6, ease: "easeOut" }}
+              />
+            ))}
+
+          <AnimatePresence mode="wait" initial={false}>
+            {open ? (
+              <motion.span
+                key="close"
+                initial={{ rotate: -90, opacity: 0 }}
+                animate={{ rotate: 0, opacity: 1 }}
+                exit={{ rotate: 90, opacity: 0 }}
+              >
+                <X size={24} />
+              </motion.span>
+            ) : (
+              <motion.span
+                key="open"
+                className="relative"
+                initial={{ rotate: 90, opacity: 0 }}
+                animate={{ rotate: 0, opacity: 1 }}
+                exit={{ rotate: -90, opacity: 0 }}
+              >
+                <MessageCircle size={26} />
+                <Sparkles size={12} className="absolute -right-1.5 -top-1.5" />
+              </motion.span>
+            )}
+          </AnimatePresence>
+
+          {!open && (
+            <span className="hidden whitespace-nowrap text-sm font-semibold sm:inline">{t("tooltip")}</span>
           )}
-        </AnimatePresence>
-      </motion.button>
+
+          {!open && (
+            <span
+              aria-hidden
+              className="absolute right-0.5 top-0.5 h-3.5 w-3.5 rounded-full border-2 border-obsidian bg-emerald sm:right-1 sm:top-0"
+            />
+          )}
+        </motion.button>
+      </div>
 
       <AnimatePresence>
         {open && (
@@ -151,7 +221,7 @@ export default function ChatWidget() {
               </div>
               <button
                 type="button"
-                onClick={() => setOpen(false)}
+                onClick={toggle}
                 aria-label={t("close")}
                 className="rounded-lg p-1.5 text-ivory/40 transition-colors hover:bg-ivory/5 hover:text-ivory"
               >

@@ -312,6 +312,8 @@
   "chat": {
     "aria_label": "Chat with the assistant",
     "tooltip": "Try our AI assistant",
+    "teaser": "Hi! I'm FS Real Estate's assistant. What are you looking for? 👋",
+    "teaser_close": "Close greeting",
     "title": "Virtual assistant",
     "subtitle": "I reply instantly",
     "greeting": "Hi! I'm the FS Inmobiliaria assistant. I can search the catalogue for you, walk you through any listing and book a viewing. What are you looking for?",
